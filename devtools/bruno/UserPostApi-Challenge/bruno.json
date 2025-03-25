@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "UserPostApi-Challenge",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
