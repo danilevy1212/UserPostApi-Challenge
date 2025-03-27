@@ -1,10 +1,13 @@
 package logger
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gkampitakis/go-snaps/snaps"
+	"github.com/rs/zerolog"
 )
 
 func TestMain(m *testing.M) {
@@ -19,5 +22,8 @@ func TestMain(m *testing.M) {
 		zerolog.TimestampFunc = time.Now
 	}()
 
-	m.Run()
+	v := m.Run()
+
+	snaps.Clean(m)
+	os.Exit(v)
 }
