@@ -1,14 +1,13 @@
 package logger
 
-// TODO  TEST!!!
-
 import (
 	"bytes"
 	"context"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog"
 	"io"
 	"time"
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
 )
 
 type ctxKeyLogger struct{}
@@ -24,24 +23,26 @@ func FromContext(ctx context.Context) *zerolog.Logger {
 	return l
 }
 
-// Captures the gin.Response and logs it before sending it
-type bodyWriter struct {
-	gin.ResponseWriter
-	body *bytes.Buffer
-}
+// For testing sake
+type UUIDFunc func() string
+type NowFunc func() time.Time
 
-func (w *bodyWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
-	return w.ResponseWriter.Write(b)
-}
+func NewMiddleware(baseLogger *zerolog.Logger, requestIDGenerator UUIDFunc, nowGenerator NowFunc) gin.HandlerFunc {
+	if requestIDGenerator == nil {
+		requestIDGenerator = uuid.NewString
+	}
 
-func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
+	if nowGenerator == nil {
+		nowGenerator = time.Now
+	}
+
 	return func(ctx *gin.Context) {
-		start := time.Now()
+		start := nowGenerator()
 
 		reqLogger := baseLogger.With().
 			Str("method", ctx.Request.Method).
 			Str("path", ctx.Request.URL.Path).
+			Str("requestID", requestIDGenerator()).
 			Str("client_ip", ctx.ClientIP()).
 			Str("user_agent", ctx.Request.UserAgent()).
 			Logger()
@@ -67,7 +68,7 @@ func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
 		reqLogger.Info().
 			Str("request_body", string(requestBody)).
 			Interface("request_headers", ctx.Request.Header).
-			Msg("Processing request")
+			Msg("processing request")
 
 		// Proceed with request
 		ctx.Next()
@@ -75,9 +76,12 @@ func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
 		// Final log
 		reqLogger.Info().
 			Int("status", ctx.Writer.Status()).
-			Str("response_body", respBuf.String()).
+			// NOTE  This only works because it is said explicitly
+			//		 that all responses are JSON... In a real app, we would do
+			//		 check dynamically based on the response headers
+			RawJSON("response_body", respBuf.Bytes()).
 			Interface("response_headers", ctx.Writer.Header()).
-			Dur("duration", time.Since(start)).
+			Float64("duration_ms", float64(nowGenerator().Sub(start).Microseconds())/1000.0).
 			Msg("response sent")
 	}
 }

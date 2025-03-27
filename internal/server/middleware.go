@@ -10,8 +10,9 @@ import (
 func (a *Application) RegisterMiddleware() {
 	r := a.router
 
+	// GLOBAL
 	// Recover from panics
 	r.Use(gin.Recovery())
-	// TODO  Zerolog logger
-	r.Use(logger.NewMiddleware(a.logger))
+	// Zerolog logger
+	r.Use(logger.NewMiddleware(a.logger, nil, nil))
 }

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/server"
 )
 
