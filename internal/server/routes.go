@@ -1,5 +1,7 @@
 package server
 
+// TODO  TEST!!!!
+
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
