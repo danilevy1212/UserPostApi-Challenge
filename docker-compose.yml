@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        CGO_ENABLED: ${CGO_ENABLED:-0}
+        GOOS: ${GOOS:-linux}
+        GOARCH: ${GOARCH:-amd64}
+    environment:
+      - CHALLENGE_SERVER_PORT=${CHALLENGE_SERVER_PORT:-3000}
+      - CHALLENGE_SERVER_IS_PRODUCTION=${CHALLENGE_SERVER_IS_PRODUCTION:-true}
+    ports:
+      - "${CHALLENGE_SERVER_PORT:-3000}:${CHALLENGE_SERVER_PORT:-3000}"

@@ -23,8 +23,11 @@ go.work.sum
 
 # direnv
 .direnv/
-.env
+.env.development
 
 # nix
 result
 result-*
+
+# docker
+.env
