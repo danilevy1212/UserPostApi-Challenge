@@ -7,31 +7,37 @@ import (
 	"strings"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/config"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"
 )
 
 type Application struct {
 	router *gin.Engine
 	logger *zerolog.Logger
+	config *config.Config
 }
 
 func New() Application {
-	// TODO  We will need some way here to set gin.SetMode(gin.ReleaseMode)
-	//       Probably in the docker container
+	c := config.New()
+
+	if !c.IsDev {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	r := gin.New()
 
-	// TODO  Remove hardcoding, pass a config or env variable instead
+	// TODO  Remove hardcoding, pass through config
 	r.SetTrustedProxies(strings.Split("127.0.0.1", ","))
 
-	// TODO  Hardcoded for now, until I figure out config
-	l := logger.New(true)
+	l := logger.New(c.IsDev)
 
 	return Application{
 		router: r,
 		logger: l,
+		config: &c,
 	}
 }
 
 func (a *Application) Serve(port uint) error {
-	return a.router.Run(fmt.Sprintf(":%d", port))
+	return a.router.Run(fmt.Sprintf(":%d", a.config.Port))
 }
