@@ -11,6 +11,7 @@ type UserCreateFunc func(context.Context, ent.User) (*ent.User, error)
 type UserGetAllFunc func(context.Context) ([]*ent.User, error)
 type UserGetByIDFunc func(context.Context, int) (*ent.User, error)
 type UserDeleteByIDFunc func(context.Context, int) error
+type UserUpdateFunc func(context.Context, ent.User) (*ent.User, error)
 
 var InMemoryDBPingFn PingFunc = func(c context.Context) error {
 	return nil
@@ -46,6 +47,13 @@ var InMemoryUserGetByIDFn UserGetByIDFunc = func(ctx context.Context, id int) (*
 var InMemoryUserDeleteByIDFn UserDeleteByIDFunc = func(ctx context.Context, i int) error {
 	return nil
 }
+var InMemoryUserUpdateFn UserUpdateFunc = func(ctx context.Context, u ent.User) (*ent.User, error) {
+	return &ent.User{
+		ID:    1,
+		Name:  "Daniel Levy Moreno",
+		Email: "danielmorenolevy@gmail.com",
+	}, nil
+}
 
 type InMemoryDB struct{}
 
@@ -71,4 +79,8 @@ func (im *InMemoryDB) UserGetByID(ctx context.Context, id int) (*ent.User, error
 
 func (im *InMemoryDB) UserDeleteByID(ctx context.Context, id int) error {
 	return InMemoryUserDeleteByIDFn(ctx, id)
+}
+
+func (im *InMemoryDB) UserUpdate(ctx context.Context, user ent.User) (*ent.User, error) {
+	return InMemoryUserUpdateFn(ctx, user)
 }

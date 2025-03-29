@@ -6,10 +6,17 @@ meta {
 
 put {
   url: {{baseUrl}}/users/:id
-  body: none
+  body: json
   auth: none
 }
 
 params:path {
-  id: 
+  id: 21
+}
+
+body:json {
+  {
+    "name": "Daniel",
+    "email": "danielmorenolevy@gmail.com"
+  }
 }

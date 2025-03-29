@@ -117,6 +117,26 @@ func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
 	return err
 }
 
+func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user ent.User) (*ent.User, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.UserUpdate").
+		Logger()
+
+	u, err := pg.User.UpdateOneID(user.ID).
+		SetName(user.Name).
+		SetEmail(user.Email).
+		Save(ctx)
+
+	if err != nil {
+		log.Err(err).
+			Msg("error while updating user")
+	}
+
+	return u, err
+}
+
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {
 	logger := l.With().
 		Str("method", "postgresql.CreateDB").

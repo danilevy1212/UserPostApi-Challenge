@@ -173,6 +173,15 @@ func Test_Application_UserGetByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 
+	t.Run("should return 400 when id is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users/hahaha", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
 	t.Run("should return 404 when user is not found", func(t *testing.T) {
 		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
 		defer func() {
@@ -237,6 +246,15 @@ func Test_Application_UserDeleteByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 
+	t.Run("should return 400 when id is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/users/hahaha", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
 	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
 		oldUserDeleteByIDFunc := inmemory.InMemoryUserDeleteByIDFn
 		defer func() {
@@ -250,6 +268,85 @@ func Test_Application_UserDeleteByID(t *testing.T) {
 		w := httptest.NewRecorder()
 		app.Router.ServeHTTP(w, req)
 
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}
+
+func Test_Application_UserUpdateByID(t *testing.T) {
+	app.Router.PUT("/users/:id", app.UserUpdateByID)
+
+	t.Run("should return 200 when user is updated", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 422 when user is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 400 when id is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/hahaha", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 404 when user is not found", func(t *testing.T) {
+		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
+		defer func() {
+			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
+		}()
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+			return nil, &ent.NotFoundError{}
+		}
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 409 when email is already in use", func(t *testing.T) {
+		oldUserUpdateFunc := inmemory.InMemoryUserUpdateFn
+		defer func() {
+			inmemory.InMemoryUserUpdateFn = oldUserUpdateFunc
+		}()
+		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user ent.User) (*ent.User, error) {
+			return nil, &ent.ConstraintError{}
+		}
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusConflict, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
+		defer func() {
+			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
+		}()
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+			return nil, errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
 		snaps.MatchJSON(t, w.Body.String())
 	})

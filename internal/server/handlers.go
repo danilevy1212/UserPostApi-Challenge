@@ -45,7 +45,6 @@ func (a *Application) UserCreate(ctx *gin.Context) {
 		Logger()
 
 	var user models.User
-
 	err := ctx.ShouldBindBodyWithJSON(&user)
 
 	if err != nil {
@@ -214,4 +213,88 @@ func (a *Application) UserDeleteByID(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func (a *Application) UserUpdateByID(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "UserUpdateByID").
+		Logger()
+
+	var user models.User
+	err := ctx.ShouldBindBodyWithJSON(&user)
+
+	if err != nil {
+		log.Info().
+			Err(err).
+			Msg("error validating new user")
+
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "bad entity",
+		})
+		return
+	}
+
+	idRaw := ctx.Param("id")
+	id, err := strconv.Atoi(idRaw)
+
+	if err != nil {
+		log.Info().
+			Str("id", idRaw).
+			Msg("invalid id")
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	dbUser, err := a.DB.UserGetByID(reqContext, id)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Info().
+				Int("id", id).
+				Msg("user not found")
+
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error querying database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	dbUser.Email = user.Email
+	dbUser.Name = user.Name
+
+	dbUser, err = a.DB.UserUpdate(reqContext, *dbUser)
+	if err != nil {
+		if ent.IsConstraintError(err) {
+			log.Info().
+				Interface("user", user).
+				Msg("email already exists")
+
+			ctx.JSON(http.StatusConflict, gin.H{"error": "email already in use"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error updating user in database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	user.ID = &dbUser.ID
+
+	ctx.JSON(http.StatusOK, user)
 }
