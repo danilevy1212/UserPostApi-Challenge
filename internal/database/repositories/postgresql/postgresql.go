@@ -24,23 +24,48 @@ func (pg *PostgresqlClient) Connection() *sql.DB {
 }
 
 func (pg *PostgresqlClient) Ping(ctx context.Context) error {
-	logger := logger.
+	log := logger.
 		FromContext(ctx).
 		With().
 		Str("method", "postgresql.Ping").
 		Logger()
 
-	logger.Info().
+	log.Info().
 		Msg("Pinging DB")
 
 	if err := pg.Connection().Ping(); err != nil {
-		logger.Error().AnErr("error", err).Msg("Failed to ping DB")
+		log.Error().AnErr("error", err).Msg("Failed to ping DB")
 		return err
 	}
 
-	logger.Info().Msg("successfully pinged database")
+	log.Info().Msg("successfully pinged database")
 
 	return nil
+}
+
+func (pg *PostgresqlClient) UserCreate(ctx context.Context, user ent.User) (*ent.User, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.UserCreate").
+		Logger()
+
+	log.Info().
+		Interface("user", user).
+		Msg("creating user")
+
+	u, err := pg.User.
+		Create().
+		SetName(user.Name).
+		SetEmail(user.Email).
+		Save(ctx)
+
+	if err != nil {
+		log.Err(err).
+			Msg("error while creating user")
+	}
+
+	return u, err
 }
 
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {

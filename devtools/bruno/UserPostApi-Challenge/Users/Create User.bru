@@ -6,6 +6,13 @@ meta {
 
 post {
   url: {{baseUrl}}/users
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "name": "Daniel",
+    "email": "danielmorenolevy@gmail.com"
+  }
 }
