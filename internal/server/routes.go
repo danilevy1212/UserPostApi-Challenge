@@ -13,6 +13,7 @@ func (a *Application) RegisterRoutes() {
 	userRoutes.POST("/", a.UserCreate)
 	userRoutes.GET("/", a.UserGetAll)
 	userRoutes.GET("/:id", a.UserGetByID)
+	userRoutes.DELETE("/:id", a.UserDeleteByID)
 
 	// Posts
 }

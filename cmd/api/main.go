@@ -12,6 +12,6 @@ func main() {
 	app.RegisterRoutes()
 
 	if err := app.Serve(app.Config.Port); err != nil {
-		fmt.Println("Fatal error occured", err)
+		fmt.Println("Fatal error occurred", err)
 	}
 }

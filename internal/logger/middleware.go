@@ -60,24 +60,37 @@ func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
 			ctx.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
 		}
 
-		reqLogger.Info().
-			Str("request_body", string(requestBody)).
-			Interface("request_headers", ctx.Request.Header).
-			Msg("processing request")
+		builder := reqLogger.Info().
+			Interface("request_headers", ctx.Request.Header)
+
+		if len(requestBody) > 0 {
+			builder = builder.Str("request_body", string(requestBody))
+		} else {
+			builder = builder.Interface("request_body", nil)
+		}
+		builder.Msg("Processing request")
 
 		// Proceed with request
 		ctx.Next()
 
 		// Final log
-		reqLogger.Info().
+		builder = reqLogger.Info().
 			Int("status", ctx.Writer.Status()).
-			// NOTE  This only works because it is said explicitly
-			//		 that all responses are JSON... In a real app, we would do
-			//		 check dynamically based on the response headers
-			RawJSON("response_body", respBuf.Bytes()).
 			Interface("response_headers", ctx.Writer.Header()).
-			Float64("duration_ms", float64(MiddlewareNowGenerator().Sub(start).Microseconds())/1000.0).
-			Msg("response sent")
+			Float64("duration_ms", float64(MiddlewareNowGenerator().Sub(start).Microseconds())/1000.0)
+
+		// NOTE  This only works because it is said explicitly
+		//		 that all responses are JSON... In a real app, we would do
+		//		 check dynamically based on the response headers
+		if respBuf.Len() > 0 {
+			builder = builder.RawJSON("response_body", respBuf.Bytes())
+		} else {
+
+			builder = builder.Interface("response_body", nil)
+		}
+
+		builder.
+			Msg("Response sent")
 	}
 }
 

@@ -207,3 +207,50 @@ func Test_Application_UserGetByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
+
+func Test_Application_UserDeleteByID(t *testing.T) {
+	app.Router.DELETE("/users/:id", app.UserDeleteByID)
+
+	t.Run("should return 204 when user is deleted", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/users/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		assert.Equal(t, w.Body.String(), "")
+	})
+
+	t.Run("should return 404 when user is not found", func(t *testing.T) {
+		oldUserDeleteByIDFunc := inmemory.InMemoryUserDeleteByIDFn
+		defer func() {
+			inmemory.InMemoryUserDeleteByIDFn = oldUserDeleteByIDFunc
+		}()
+		inmemory.InMemoryUserDeleteByIDFn = func(ctx context.Context, id int) error {
+			return &ent.NotFoundError{}
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/users/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldUserDeleteByIDFunc := inmemory.InMemoryUserDeleteByIDFn
+		defer func() {
+			inmemory.InMemoryUserDeleteByIDFn = oldUserDeleteByIDFunc
+		}()
+		inmemory.InMemoryUserDeleteByIDFn = func(ctx context.Context, id int) error {
+			return errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/users/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}

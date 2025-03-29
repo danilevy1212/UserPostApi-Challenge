@@ -12,4 +12,5 @@ type DBRepository interface {
 	UserCreate(ctx context.Context, user ent.User) (*ent.User, error)
 	UserGetAll(ctx context.Context) ([]*ent.User, error)
 	UserGetByID(ctx context.Context, id int) (*ent.User, error)
+	UserDeleteByID(ctx context.Context, id int) error
 }

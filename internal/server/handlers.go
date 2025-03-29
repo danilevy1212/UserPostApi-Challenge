@@ -169,3 +169,49 @@ func (a *Application) UserGetByID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, user)
 }
+
+func (a *Application) UserDeleteByID(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "UserDeleteByID").
+		Logger()
+
+	idRaw := ctx.Param("id")
+
+	id, err := strconv.Atoi(idRaw)
+
+	if err != nil {
+		log.Info().
+			Str("id", idRaw).
+			Msg("invalid id")
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	err = a.DB.UserDeleteByID(reqContext, id)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Info().
+				Int("id", id).
+				Msg("user not found")
+
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+
+		log.Error().
+			Int("user.id", id).
+			Err(err).
+			Msg("error deleting user in database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}

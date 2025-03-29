@@ -100,6 +100,23 @@ func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*ent.User,
 	return user, err
 }
 
+func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.UserDeleteByID").
+		Logger()
+
+	err := pg.User.DeleteOneID(id).Exec(ctx)
+
+	if err != nil && !ent.IsNotFound(err) {
+		log.Err(err).
+			Msg("error while deleting user")
+	}
+
+	return err
+}
+
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {
 	logger := l.With().
 		Str("method", "postgresql.CreateDB").

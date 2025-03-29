@@ -38,6 +38,20 @@ func Test_middleware_NewMiddleware(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code, "code should be 200")
 		snaps.MatchSnapshot(t, logBuf.String())
 	})
+
+	t.Run("should omit the request and response body when not provided", func(t *testing.T) {
+		router.DELETE("/", func(ctx *gin.Context) {
+			ctx.Status(http.StatusNoContent)
+		})
+		req := httptest.NewRequest(http.MethodDelete, "/", nil)
+		req.Header.Set("User-Agent", "TestAgent/1.0")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code, "code should be 204")
+		snaps.MatchSnapshot(t, logBuf.String())
+	})
 }
 
 func Test_FromContext(t *testing.T) {
@@ -68,7 +82,7 @@ func Test_FromContext(t *testing.T) {
 	}
 }
 
-func Test_withContext(t *testing.T) {
+func Test_WithContext(t *testing.T) {
 	t.Run("should return a context with a set logger", func(t *testing.T) {
 		logger := zerolog.New(zerolog.NewConsoleWriter())
 		context := WithContext(context.Background(), &logger)
