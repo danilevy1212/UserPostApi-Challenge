@@ -13,6 +13,20 @@ func (a *Application) HealthCheck(ctx *gin.Context) {
 		Logger()
 
 	logger.Info().
+		Msg("pinging database")
+
+	if err := a.DB.Ping(ctx.Request.Context()); err != nil {
+		logger.Error().
+			Err(err).
+			Msg("failed to ping database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"status": "service unavailable",
+		})
+		return
+	}
+
+	logger.Info().
 		Msg("Health check OK")
 
 	ctx.JSON(http.StatusOK, gin.H{

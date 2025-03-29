@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/gkampitakis/go-snaps/snaps"
 	"github.com/rs/zerolog"
@@ -16,12 +14,6 @@ import (
 )
 
 func Test_middleware_NewMiddleware(t *testing.T) {
-	uuidGen := func() string {
-		return "6460a629-fab4-4eaf-8de1-bfb4f39ddbbc"
-	}
-	nowFunc := func () time.Time {
-		return time.Date(2025, 3, 27, 12, 0, 0, 0, time.UTC)
-	}
 	var logBuf bytes.Buffer
 	logger := zerolog.
 		New(&logBuf).
@@ -30,7 +22,7 @@ func Test_middleware_NewMiddleware(t *testing.T) {
 		Logger()
 
 	router := gin.Default()
-	router.Use(NewMiddleware(&logger, uuidGen, nowFunc))
+	router.Use(NewMiddleware(&logger))
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "OK"})
 	})

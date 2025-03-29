@@ -31,3 +31,4 @@ result-*
 
 # docker
 .env
+.docker

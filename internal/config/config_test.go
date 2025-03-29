@@ -10,6 +10,12 @@ func Test_New(t *testing.T) {
 	sampleConfig := Config{
 		IsDev: true,
 		Port:  9999,
+		DB: DBConfig{
+			host:     "localhost",
+			username: "user",
+			password: "password",
+			name:     "dbname",
+		},
 	}
 
 	t.Run("should be able to override fetcher using `ConfigFetcher`", func(t *testing.T) {
@@ -21,6 +27,16 @@ func Test_New(t *testing.T) {
 		ConfigFetcher = oldConfigFetcher
 
 		assert.Equal(t, sampleConfig, newConfig, "are not the same value")
+	})
+
+	t.Run("should return valid db URL", func(t *testing.T) {
+		oldConfigFetcher := ConfigFetcher
+		ConfigFetcher = func() Config {
+			return sampleConfig
+		}
+		newConfig := New()
+		ConfigFetcher = oldConfigFetcher
+		assert.Equal(t, "postgresql://user:password@localhost/dbname", newConfig.DB.String(), "are not the same value")
 	})
 }
 
@@ -35,6 +51,10 @@ func Test_fetchFromEnvironment(t *testing.T) {
 		{"should fetch value from environment when set (false)", "CHALLENGE_SERVER_IS_PRODUCTION", "FALSE", true},
 	}
 	t.Setenv("CHALLENGE_SERVER_PORT", "3000")
+	t.Setenv("CHALLENGE_DATABASE_HOST", "localhost")
+	t.Setenv("CHALLENGE_DATABASE_USERNAME", "user")
+	t.Setenv("CHALLENGE_DATABASE_PASSWORD", "password")
+	t.Setenv("CHALLENGE_DATABASE_NAME", "dbname")
 
 	for _, tt := range simpleTests {
 		t.Run(tt.name, func(t *testing.T) {

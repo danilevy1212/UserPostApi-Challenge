@@ -11,8 +11,7 @@ func main() {
 	app.RegisterMiddleware()
 	app.RegisterRoutes()
 
-	// TODO  Hardcoded port for now
-	if err := app.Serve(3000); err != nil {
+	if err := app.Serve(app.Config.Port); err != nil {
 		fmt.Println("Fatal error occured", err)
 	}
 }

@@ -27,22 +27,18 @@ func FromContext(ctx context.Context) *zerolog.Logger {
 type UUIDFunc func() string
 type NowFunc func() time.Time
 
-func NewMiddleware(baseLogger *zerolog.Logger, requestIDGenerator UUIDFunc, nowGenerator NowFunc) gin.HandlerFunc {
-	if requestIDGenerator == nil {
-		requestIDGenerator = uuid.NewString
-	}
+var MiddlewareRequestIDGenerator UUIDFunc = uuid.NewString
+var MiddlewareNowGenerator NowFunc = time.Now
 
-	if nowGenerator == nil {
-		nowGenerator = time.Now
-	}
+func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
 
 	return func(ctx *gin.Context) {
-		start := nowGenerator()
+		start := MiddlewareNowGenerator()
 
 		reqLogger := baseLogger.With().
 			Str("method", ctx.Request.Method).
 			Str("path", ctx.Request.URL.Path).
-			Str("requestID", requestIDGenerator()).
+			Str("requestID", MiddlewareRequestIDGenerator()).
 			Str("client_ip", ctx.ClientIP()).
 			Str("user_agent", ctx.Request.UserAgent()).
 			Logger()
@@ -81,7 +77,7 @@ func NewMiddleware(baseLogger *zerolog.Logger, requestIDGenerator UUIDFunc, nowG
 			//		 check dynamically based on the response headers
 			RawJSON("response_body", respBuf.Bytes()).
 			Interface("response_headers", ctx.Writer.Header()).
-			Float64("duration_ms", float64(nowGenerator().Sub(start).Microseconds())/1000.0).
+			Float64("duration_ms", float64(MiddlewareNowGenerator().Sub(start).Microseconds())/1000.0).
 			Msg("response sent")
 	}
 }

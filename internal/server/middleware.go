@@ -8,11 +8,11 @@ import (
 )
 
 func (a *Application) RegisterMiddleware() {
-	r := a.router
+	r := a.Router
 
 	// GLOBAL
 	// Recover from panics
 	r.Use(gin.Recovery())
 	// Zerolog logger
-	r.Use(logger.NewMiddleware(a.logger, nil, nil))
+	r.Use(logger.NewMiddleware(a.Logger))
 }

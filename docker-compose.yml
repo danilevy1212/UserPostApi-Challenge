@@ -12,3 +12,14 @@ services:
       - CHALLENGE_SERVER_IS_PRODUCTION=${CHALLENGE_SERVER_IS_PRODUCTION:-true}
     ports:
       - "${CHALLENGE_SERVER_PORT:-3000}:${CHALLENGE_SERVER_PORT:-3000}"
+
+  database:
+    image: postgres:17.4
+    environment:
+      POSTGRES_USER: ${CHALLENGE_DATABASE_USERNAME:-user}
+      POSTGRES_PASSWORD: ${CHALLENGE_DATABASE_PASSWORD:-password}
+      POSTGRES_DB: ${CHALLENGE_DATABASE_NAME:-challenge}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker/db_data:/var/lib/postgresql/data

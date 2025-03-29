@@ -3,7 +3,7 @@ package server
 // TODO  TEST!!!!
 
 func (a *Application) RegisterRoutes() {
-	r := a.router
+	r := a.Router
 
 	r.GET("/health", a.HealthCheck)
 }

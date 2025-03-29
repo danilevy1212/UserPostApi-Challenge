@@ -4,17 +4,21 @@ package server
 
 import (
 	"fmt"
-	"strings"
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/config"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/database"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"
+	"github.com/gin-gonic/gin"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/rs/zerolog"
+	"strings"
 )
 
 type Application struct {
-	router *gin.Engine
-	logger *zerolog.Logger
-	config *config.Config
+	Router *gin.Engine
+	Logger *zerolog.Logger
+	Config *config.Config
+	DB     database.DBRepository
 }
 
 func New() Application {
@@ -31,13 +35,16 @@ func New() Application {
 
 	l := logger.New(c.IsDev)
 
+	db := postgresql.New(c.DB.String(), l)
+
 	return Application{
-		router: r,
-		logger: l,
-		config: &c,
+		Router: r,
+		Logger: l,
+		Config: &c,
+		DB:     db,
 	}
 }
 
 func (a *Application) Serve(port uint) error {
-	return a.router.Run(fmt.Sprintf(":%d", a.config.Port))
+	return a.Router.Run(fmt.Sprintf(":%d", a.Config.Port))
 }
