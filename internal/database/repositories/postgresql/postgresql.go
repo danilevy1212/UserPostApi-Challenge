@@ -83,6 +83,23 @@ func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*ent.User, error)
 	return users, err
 }
 
+func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*ent.User, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.UserGet").
+		Logger()
+
+	user, err := pg.User.Get(ctx, id)
+
+	if err != nil && !ent.IsNotFound(err) {
+		log.Err(err).
+			Msg("error while querying user")
+	}
+
+	return user, err
+}
+
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {
 	logger := l.With().
 		Str("method", "postgresql.CreateDB").

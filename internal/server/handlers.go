@@ -1,12 +1,12 @@
 package server
 
 import (
-	"net/http"
-
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/models"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"strconv"
 )
 
 func (a *Application) HealthCheck(ctx *gin.Context) {
@@ -117,4 +117,55 @@ func (a *Application) UserGetAll(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, result)
+}
+
+func (a *Application) UserGetByID(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "UserGetByID").
+		Logger()
+
+	idRaw := ctx.Param("id")
+
+	id, err := strconv.Atoi(idRaw)
+
+	if err != nil {
+		log.Info().
+			Str("id", idRaw).
+			Msg("invalid id")
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	dbUser, err := a.DB.UserGetByID(reqContext, id)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Info().
+				Int("id", id).
+				Msg("user not found")
+
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error querying database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	user := models.User{
+		ID:    &dbUser.ID,
+		Name:  dbUser.Name,
+		Email: dbUser.Email,
+	}
+
+	ctx.JSON(http.StatusOK, user)
 }

@@ -15,7 +15,7 @@ type DBConfig struct {
 }
 
 func (dbc DBConfig) String() string {
-	return fmt.Sprintf("postgresql://%s:%s@%s/%s&connect_timeout=5", dbc.username, dbc.password, dbc.host, dbc.name)
+	return fmt.Sprintf("postgresql://%s:%s@%s/%s?connect_timeout=5", dbc.username, dbc.password, dbc.host, dbc.name)
 }
 
 type Config struct {

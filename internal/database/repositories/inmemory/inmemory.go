@@ -9,6 +9,7 @@ import (
 type PingFunc func(context.Context) error
 type UserCreateFunc func(context.Context, ent.User) (*ent.User, error)
 type UserGetAllFunc func(context.Context) ([]*ent.User, error)
+type UserGetByIDFunc func(context.Context, int) (*ent.User, error)
 
 var InMemoryDBPingFn PingFunc = func(c context.Context) error {
 	return nil
@@ -34,6 +35,13 @@ var InMemoryUserGetAllFn UserGetAllFunc = func(ctx context.Context) ([]*ent.User
 		},
 	}, nil
 }
+var InMemoryUserGetByIDFn UserGetByIDFunc = func(ctx context.Context, id int) (*ent.User, error) {
+	return &ent.User{
+		ID:    1,
+		Name:  "Daniel Levy Moreno",
+		Email: "danielmorenolevy@gmail.com",
+	}, nil
+}
 
 type InMemoryDB struct{}
 
@@ -51,4 +59,8 @@ func (im *InMemoryDB) UserCreate(ctx context.Context, user ent.User) (*ent.User,
 
 func (im *InMemoryDB) UserGetAll(ctx context.Context) ([]*ent.User, error) {
 	return InMemoryUserGetAllFn(ctx)
+}
+
+func (im *InMemoryDB) UserGetByID(ctx context.Context, id int) (*ent.User, error) {
+	return InMemoryUserGetByIDFn(ctx, id)
 }

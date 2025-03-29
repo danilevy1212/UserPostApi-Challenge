@@ -160,3 +160,50 @@ func Test_Application_UserGetAll(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
+
+func Test_Application_UserGetByID(t *testing.T) {
+	app.Router.GET("/users/:id", app.UserGetByID)
+
+	t.Run("should return 200 with user data", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 404 when user is not found", func(t *testing.T) {
+		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
+		defer func() {
+			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
+		}()
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+			return nil, &ent.NotFoundError{}
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
+		defer func() {
+			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
+		}()
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+			return nil, errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}

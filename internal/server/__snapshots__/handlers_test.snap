@@ -61,3 +61,23 @@
  "error": "service unavailable"
 }
 ---
+
+[Test_Application_UserGetByID/should_return_200_with_user_data - 1]
+{
+ "email": "danielmorenolevy@gmail.com",
+ "id": 1,
+ "name": "Daniel Levy Moreno"
+}
+---
+
+[Test_Application_UserGetByID/should_return_404_when_user_is_not_found - 1]
+{
+ "error": "user not found"
+}
+---
+
+[Test_Application_UserGetByID/should_return_503_when_unexpected_error_happens - 1]
+{
+ "error": "service unavailable"
+}
+---
