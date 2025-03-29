@@ -3,15 +3,13 @@ package postgresql
 import (
 	"context"
 	"database/sql"
-	"time"
-
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"github.com/rs/zerolog"
-
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent/migrate"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"
+	"github.com/rs/zerolog"
+	"time"
 )
 
 type PostgresqlClient struct {
@@ -66,6 +64,23 @@ func (pg *PostgresqlClient) UserCreate(ctx context.Context, user ent.User) (*ent
 	}
 
 	return u, err
+}
+
+func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*ent.User, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.UserGetAll").
+		Logger()
+
+	users, err := pg.User.Query().All(ctx)
+
+	if err != nil {
+		log.Err(err).
+			Msg("error while querying users")
+	}
+
+	return users, err
 }
 
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {

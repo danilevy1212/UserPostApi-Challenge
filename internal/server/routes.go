@@ -11,6 +11,7 @@ func (a *Application) RegisterRoutes() {
 	userRoutes := r.Group("/users")
 
 	userRoutes.POST("/", a.UserCreate)
+	userRoutes.GET("/", a.UserGetAll)
 
 	// Posts
 }

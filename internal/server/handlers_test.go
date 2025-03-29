@@ -93,4 +93,70 @@ func Test_Application_UserCreate(t *testing.T) {
 		assert.Equal(t, 409, w.Code)
 		snaps.MatchJSON(t, w.Body.String())
 	})
+
+	t.Run("should return 503 if unknown error occurs", func(t *testing.T) {
+		oldUserCreateFn := inmemory.InMemoryUserCreateFn
+		defer func() {
+			inmemory.InMemoryUserCreateFn = oldUserCreateFn
+		}()
+
+		inmemory.InMemoryUserCreateFn = func(ctx context.Context, u ent.User) (*ent.User, error) {
+			return nil, errors.New("something terrible happened")
+		}
+
+		reader := strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPost, "/users", reader))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, 503, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}
+
+func Test_Application_UserGetAll(t *testing.T) {
+	app.Router.GET("/users", app.UserGetAll)
+
+	t.Run("should return 200 with all data", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 200 with all data when empty", func(t *testing.T) {
+		oldUserGetAllFunc := inmemory.InMemoryUserGetAllFn
+		defer func() {
+			inmemory.InMemoryUserGetAllFn = oldUserGetAllFunc
+		}()
+		inmemory.InMemoryUserGetAllFn = func(ctx context.Context) ([]*ent.User, error) {
+			return []*ent.User{}, nil
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldUserGetAllFunc := inmemory.InMemoryUserGetAllFn
+		defer func() {
+			inmemory.InMemoryUserGetAllFn = oldUserGetAllFunc
+		}()
+		inmemory.InMemoryUserGetAllFn = func(ctx context.Context) ([]*ent.User, error) {
+			return nil, errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
 }

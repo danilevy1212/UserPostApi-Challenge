@@ -10,4 +10,5 @@ type DBRepository interface {
 	Connection() *sql.DB
 	Ping(ctx context.Context) error
 	UserCreate(ctx context.Context, user ent.User) (*ent.User, error)
+	UserGetAll(ctx context.Context) ([]*ent.User, error)
 }

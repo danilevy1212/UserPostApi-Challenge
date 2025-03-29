@@ -36,7 +36,7 @@ func Test_New(t *testing.T) {
 		}
 		newConfig := New()
 		ConfigFetcher = oldConfigFetcher
-		assert.Equal(t, "postgresql://user:password@localhost/dbname", newConfig.DB.String(), "are not the same value")
+		assert.Equal(t, "postgresql://user:password@localhost/dbname&connect_timeout=5", newConfig.DB.String(), "are not the same value")
 	})
 }
 

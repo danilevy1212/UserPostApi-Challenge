@@ -84,3 +84,37 @@ func (a *Application) UserCreate(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, user)
 }
+
+func (a *Application) UserGetAll(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "UserGetAll").
+		Logger()
+
+	dbUsers, err := a.DB.UserGetAll(reqContext)
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("error querying database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	result := make([]models.User, 0, len(dbUsers))
+	for _, dbU := range dbUsers {
+		user := models.User{
+			ID:    &dbU.ID,
+			Name:  dbU.Name,
+			Email: dbU.Email,
+		}
+
+		result = append(result, user)
+	}
+
+	ctx.JSON(http.StatusOK, result)
+}
