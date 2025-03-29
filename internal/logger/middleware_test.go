@@ -53,7 +53,7 @@ func Test_FromContext(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			if test.setup {
 				logger := zerolog.New(zerolog.NewConsoleWriter())
-				ctx := withContext(context.Background(), &logger)
+				ctx := WithContext(context.Background(), &logger)
 				assert.NotPanics(t, func() {
 					newLogger := FromContext(ctx)
 					assert.NotNil(t, newLogger, "should not be nil")
@@ -71,7 +71,7 @@ func Test_FromContext(t *testing.T) {
 func Test_withContext(t *testing.T) {
 	t.Run("should return a context with a set logger", func(t *testing.T) {
 		logger := zerolog.New(zerolog.NewConsoleWriter())
-		context := withContext(context.Background(), &logger)
+		context := WithContext(context.Background(), &logger)
 
 		newLogger, ok := context.Value(loggerKey).(*zerolog.Logger)
 

@@ -31,7 +31,6 @@ var MiddlewareRequestIDGenerator UUIDFunc = uuid.NewString
 var MiddlewareNowGenerator NowFunc = time.Now
 
 func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
-
 	return func(ctx *gin.Context) {
 		start := MiddlewareNowGenerator()
 
@@ -52,7 +51,7 @@ func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
 		ctx.Writer = writer
 
 		// Inject logger
-		ctxWithLogger := withContext(ctx.Request.Context(), &reqLogger)
+		ctxWithLogger := WithContext(ctx.Request.Context(), &reqLogger)
 		ctx.Request = ctx.Request.WithContext(ctxWithLogger)
 
 		var requestBody []byte
@@ -82,6 +81,6 @@ func NewMiddleware(baseLogger *zerolog.Logger) gin.HandlerFunc {
 	}
 }
 
-func withContext(ctx context.Context, logger *zerolog.Logger) context.Context {
+func WithContext(ctx context.Context, logger *zerolog.Logger) context.Context {
 	return context.WithValue(ctx, loggerKey, logger)
 }

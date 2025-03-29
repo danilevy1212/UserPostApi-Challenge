@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -11,9 +12,14 @@ import (
 
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/config"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/inmemory"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"
 )
 
 var app Application
+
+func addLoggerToContext(req *http.Request) *http.Request {
+	return req.WithContext(logger.WithContext(req.Context(), app.Logger))
+}
 
 func TestMain(m *testing.M) {
 	gin.SetMode(gin.TestMode)
@@ -27,11 +33,11 @@ func TestMain(m *testing.M) {
 	}
 
 	c :=  config.New()
+	l := zerolog.Nop()
 	app.Config = &c
 	app.Router = gin.New()
 	app.DB = &inmemory.InMemoryDB{}
-	app.RegisterMiddleware()
-	app.RegisterRoutes()
+	app.Logger = &l
 
 	// Freeze time
 	zerolog.TimestampFunc = func() time.Time {

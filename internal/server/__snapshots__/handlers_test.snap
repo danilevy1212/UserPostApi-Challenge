@@ -1,0 +1,12 @@
+
+[Test_Application_Health/should_return_200_if_PING_to_DB_is_ok - 1]
+{
+ "status": "OK"
+}
+---
+
+[Test_Application_Health/should_return_503_if_PING_to_DB_fails - 1]
+{
+ "status": "service unavailable"
+}
+---
