@@ -131,3 +131,15 @@
  "error": "email already in use"
 }
 ---
+
+[Test_Application_UserGetByID/should_return_400_when_id_is_malformed - 1]
+{
+ "error": "invalid id"
+}
+---
+
+[Test_Application_UserDeleteByID/should_return_400_when_id_is_malformed - 1]
+{
+ "error": "invalid id"
+}
+---

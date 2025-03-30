@@ -3,13 +3,16 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
+	"github.com/rs/zerolog"
+
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent/migrate"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"
-	"github.com/rs/zerolog"
-	"time"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/models"
 )
 
 type PostgresqlClient struct {
@@ -41,7 +44,7 @@ func (pg *PostgresqlClient) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (pg *PostgresqlClient) UserCreate(ctx context.Context, user ent.User) (*ent.User, error) {
+func (pg *PostgresqlClient) UserCreate(ctx context.Context, user models.User) (*models.User, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -63,10 +66,14 @@ func (pg *PostgresqlClient) UserCreate(ctx context.Context, user ent.User) (*ent
 			Msg("error while creating user")
 	}
 
-	return u, err
+	return &models.User{
+		ID:    &u.ID,
+		Email: u.Email,
+		Name:  u.Name,
+	}, err
 }
 
-func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*ent.User, error) {
+func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*models.User, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -80,10 +87,19 @@ func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*ent.User, error)
 			Msg("error while querying users")
 	}
 
-	return users, err
+	result := make([]*models.User, 0, len(users))
+	for _, u := range users {
+		result = append(result, &models.User{
+			ID:    &u.ID,
+			Name:  u.Name,
+			Email: u.Email,
+		})
+	}
+
+	return result, err
 }
 
-func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*ent.User, error) {
+func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*models.User, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -92,12 +108,20 @@ func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*ent.User,
 
 	user, err := pg.User.Get(ctx, id)
 
-	if err != nil && !ent.IsNotFound(err) {
-		log.Err(err).
-			Msg("error while querying user")
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			log.Err(err).
+				Msg("error while querying user")
+		}
+
+		return nil, err
 	}
 
-	return user, err
+	return &models.User{
+		ID:    &id,
+		Email: user.Email,
+		Name:  user.Name,
+	}, err
 }
 
 func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
@@ -117,14 +141,14 @@ func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
 	return err
 }
 
-func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user ent.User) (*ent.User, error) {
+func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user models.User) (*models.User, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
 		Str("method", "postgresql.UserUpdate").
 		Logger()
 
-	u, err := pg.User.UpdateOneID(user.ID).
+	u, err := pg.User.UpdateOneID(*user.ID).
 		SetName(user.Name).
 		SetEmail(user.Email).
 		Save(ctx)
@@ -132,9 +156,14 @@ func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user ent.User) (*ent
 	if err != nil {
 		log.Err(err).
 			Msg("error while updating user")
+		return nil, err
 	}
 
-	return u, err
+	return &models.User{
+		ID:    &u.ID,
+		Email: u.Email,
+		Name:  u.Name,
+	}, err
 }
 
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {
@@ -148,7 +177,7 @@ func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) err
 		migrate.WithDropColumn(true),
 	)
 	if err != nil {
-		logger.Error().AnErr("error", err)
+		logger.Error().Err(err)
 		return err
 	}
 

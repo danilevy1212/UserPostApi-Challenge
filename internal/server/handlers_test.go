@@ -3,14 +3,17 @@ package server
 import (
 	"context"
 	"errors"
-	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/inmemory"
-	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent"
-	"github.com/gkampitakis/go-snaps/snaps"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/gkampitakis/go-snaps/snaps"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/inmemory"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent"
+	"github.com/danilevy1212/UserPostApi-Challenge/internal/models"
 )
 
 func Test_Application_Health(t *testing.T) {
@@ -81,7 +84,7 @@ func Test_Application_UserCreate(t *testing.T) {
 			inmemory.InMemoryUserCreateFn = oldUserCreateFn
 		}()
 
-		inmemory.InMemoryUserCreateFn = func(ctx context.Context, u ent.User) (*ent.User, error) {
+		inmemory.InMemoryUserCreateFn = func(ctx context.Context, u models.User) (*models.User, error) {
 			return nil, &ent.ConstraintError{}
 		}
 
@@ -100,7 +103,7 @@ func Test_Application_UserCreate(t *testing.T) {
 			inmemory.InMemoryUserCreateFn = oldUserCreateFn
 		}()
 
-		inmemory.InMemoryUserCreateFn = func(ctx context.Context, u ent.User) (*ent.User, error) {
+		inmemory.InMemoryUserCreateFn = func(ctx context.Context, u models.User) (*models.User, error) {
 			return nil, errors.New("something terrible happened")
 		}
 
@@ -131,8 +134,8 @@ func Test_Application_UserGetAll(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetAllFn = oldUserGetAllFunc
 		}()
-		inmemory.InMemoryUserGetAllFn = func(ctx context.Context) ([]*ent.User, error) {
-			return []*ent.User{}, nil
+		inmemory.InMemoryUserGetAllFn = func(ctx context.Context) ([]*models.User, error) {
+			return []*models.User{}, nil
 		}
 
 		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/users", nil))
@@ -148,7 +151,7 @@ func Test_Application_UserGetAll(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetAllFn = oldUserGetAllFunc
 		}()
-		inmemory.InMemoryUserGetAllFn = func(ctx context.Context) ([]*ent.User, error) {
+		inmemory.InMemoryUserGetAllFn = func(ctx context.Context) ([]*models.User, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -187,7 +190,7 @@ func Test_Application_UserGetByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
 			return nil, &ent.NotFoundError{}
 		}
 
@@ -204,7 +207,7 @@ func Test_Application_UserGetByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -308,7 +311,7 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
 			return nil, &ent.NotFoundError{}
 		}
 		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
@@ -324,7 +327,7 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserUpdateFn = oldUserUpdateFunc
 		}()
-		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user ent.User) (*ent.User, error) {
+		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user models.User) (*models.User, error) {
 			return nil, &ent.ConstraintError{}
 		}
 		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
@@ -340,7 +343,7 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*ent.User, error) {
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 

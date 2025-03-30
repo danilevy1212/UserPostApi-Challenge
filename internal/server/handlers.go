@@ -58,7 +58,7 @@ func (a *Application) UserCreate(ctx *gin.Context) {
 		return
 	}
 
-	dbUser, err := a.DB.UserCreate(reqContext, *user.ToEnt())
+	dbUser, err := a.DB.UserCreate(reqContext, user)
 	if err != nil {
 		if ent.IsConstraintError(err) {
 			log.Info().
@@ -79,7 +79,7 @@ func (a *Application) UserCreate(ctx *gin.Context) {
 		return
 	}
 
-	user.ID = &dbUser.ID
+	user.ID = dbUser.ID
 
 	ctx.JSON(http.StatusCreated, user)
 }
@@ -107,7 +107,7 @@ func (a *Application) UserGetAll(ctx *gin.Context) {
 	result := make([]models.User, 0, len(dbUsers))
 	for _, dbU := range dbUsers {
 		user := models.User{
-			ID:    &dbU.ID,
+			ID:    dbU.ID,
 			Name:  dbU.Name,
 			Email: dbU.Email,
 		}
@@ -161,7 +161,7 @@ func (a *Application) UserGetByID(ctx *gin.Context) {
 	}
 
 	user := models.User{
-		ID:    &dbUser.ID,
+		ID:    dbUser.ID,
 		Name:  dbUser.Name,
 		Email: dbUser.Email,
 	}
@@ -294,7 +294,7 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 		return
 	}
 
-	user.ID = &dbUser.ID
+	user.ID = dbUser.ID
 
 	ctx.JSON(http.StatusOK, user)
 }
