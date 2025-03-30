@@ -191,7 +191,7 @@ func Test_Application_UserGetByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id uint64) (*models.User, error) {
 			return nil, &ent.NotFoundError{}
 		}
 
@@ -208,7 +208,7 @@ func Test_Application_UserGetByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
+		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id uint64) (*models.User, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -238,7 +238,7 @@ func Test_Application_UserDeleteByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserDeleteByIDFn = oldUserDeleteByIDFunc
 		}()
-		inmemory.InMemoryUserDeleteByIDFn = func(ctx context.Context, id int) error {
+		inmemory.InMemoryUserDeleteByIDFn = func(ctx context.Context, id uint64) error {
 			return &ent.NotFoundError{}
 		}
 
@@ -264,7 +264,7 @@ func Test_Application_UserDeleteByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserDeleteByIDFn = oldUserDeleteByIDFunc
 		}()
-		inmemory.InMemoryUserDeleteByIDFn = func(ctx context.Context, id int) error {
+		inmemory.InMemoryUserDeleteByIDFn = func(ctx context.Context, id uint64) error {
 			return errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -482,7 +482,7 @@ func Test_Application_PostGetByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
 		}()
-		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id uint64) (*models.Post, error) {
 			return nil, &ent.NotFoundError{}
 		}
 
@@ -499,7 +499,7 @@ func Test_Application_PostGetByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
 		}()
-		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id uint64) (*models.Post, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -529,7 +529,7 @@ func Test_Application_PostDeleteByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryPostDeleteByIDFn = oldPostDeleteByIDFunc
 		}()
-		inmemory.InMemoryPostDeleteByIDFn = func(ctx context.Context, id int) error {
+		inmemory.InMemoryPostDeleteByIDFn = func(ctx context.Context, id uint64) error {
 			return &ent.NotFoundError{}
 		}
 
@@ -555,7 +555,7 @@ func Test_Application_PostDeleteByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryPostDeleteByIDFn = oldPostDeleteByIDFunc
 		}()
-		inmemory.InMemoryPostDeleteByIDFn = func(ctx context.Context, id int) error {
+		inmemory.InMemoryPostDeleteByIDFn = func(ctx context.Context, id uint64) error {
 			return errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -617,7 +617,7 @@ func Test_Application_PostUpdateByID(t *testing.T) {
 		w := httptest.NewRecorder()
 		app.Router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, http.StatusConflict, w.Code)
 		snaps.MatchJSON(t, w.Body.String())
 	})
 

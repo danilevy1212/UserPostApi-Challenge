@@ -108,7 +108,7 @@ func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*models.User, err
 	return result, err
 }
 
-func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*models.User, error) {
+func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id uint64) (*models.User, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -137,7 +137,7 @@ func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*models.Us
 	}, err
 }
 
-func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
+func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id uint64) error {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -156,7 +156,7 @@ func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
 	}
 
 	log.Info().
-		Int("id", id).
+		Uint64("id", id).
 		Msg("user deleted")
 
 	return nil
@@ -262,7 +262,7 @@ func (pg *PostgresqlClient) PostGetAll(ctx context.Context) ([]*models.Post, err
 	return result, err
 }
 
-func (pg *PostgresqlClient) PostGetByID(ctx context.Context, id int) (*models.Post, error) {
+func (pg *PostgresqlClient) PostGetByID(ctx context.Context, id uint64) (*models.Post, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -292,7 +292,7 @@ func (pg *PostgresqlClient) PostGetByID(ctx context.Context, id int) (*models.Po
 	}, err
 }
 
-func (pg *PostgresqlClient) PostDeleteByID(ctx context.Context, id int) error {
+func (pg *PostgresqlClient) PostDeleteByID(ctx context.Context, id uint64) error {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -311,7 +311,7 @@ func (pg *PostgresqlClient) PostDeleteByID(ctx context.Context, id int) error {
 	}
 
 	log.Info().
-		Int("id", id).
+		Uint64("id", id).
 		Msg("post deleted")
 
 	return nil

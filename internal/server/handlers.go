@@ -128,7 +128,7 @@ func (a *Application) UserGetByID(ctx *gin.Context) {
 
 	idRaw := ctx.Param("id")
 
-	id, err := strconv.Atoi(idRaw)
+	id, err := strconv.ParseUint(idRaw, 10, 64)
 
 	if err != nil {
 		log.Info().
@@ -144,7 +144,7 @@ func (a *Application) UserGetByID(ctx *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
-				Int("id", id).
+				Uint64("id", id).
 				Msg("user not found")
 
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -179,7 +179,7 @@ func (a *Application) UserDeleteByID(ctx *gin.Context) {
 
 	idRaw := ctx.Param("id")
 
-	id, err := strconv.Atoi(idRaw)
+	id, err := strconv.ParseUint(idRaw, 10, 64)
 
 	if err != nil {
 		log.Info().
@@ -195,7 +195,7 @@ func (a *Application) UserDeleteByID(ctx *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
-				Int("id", id).
+				Uint64("id", id).
 				Msg("user not found")
 
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -203,7 +203,7 @@ func (a *Application) UserDeleteByID(ctx *gin.Context) {
 		}
 
 		log.Error().
-			Int("user.id", id).
+			Uint64("user.id", id).
 			Err(err).
 			Msg("error deleting user in database")
 
@@ -237,7 +237,7 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 	}
 
 	idRaw := ctx.Param("id")
-	id, err := strconv.Atoi(idRaw)
+	id, err := strconv.ParseUint(idRaw, 10, 64)
 	if err != nil {
 		log.Info().
 			Str("id", idRaw).
@@ -255,7 +255,7 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
-				Int("id", id).
+				Uint64("id", id).
 				Msg("user not found")
 
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -374,7 +374,7 @@ func (a *Application) PostGetByID(ctx *gin.Context) {
 		Logger()
 
 	idRaw := ctx.Param("id")
-	id, err := strconv.Atoi(idRaw)
+	id, err := strconv.ParseUint(idRaw, 10, 64)
 
 	if err != nil {
 		log.Info().
@@ -390,7 +390,7 @@ func (a *Application) PostGetByID(ctx *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
-				Int("id", id).
+				Uint64("id", id).
 				Msg("post not found")
 
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
@@ -425,7 +425,7 @@ func (a *Application) PostDeleteByID(ctx *gin.Context) {
 		Logger()
 
 	idRaw := ctx.Param("id")
-	id, err := strconv.Atoi(idRaw)
+	id, err := strconv.ParseUint(idRaw, 10, 64)
 
 	if err != nil {
 		log.Info().
@@ -441,7 +441,7 @@ func (a *Application) PostDeleteByID(ctx *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
-				Int("id", id).
+				Uint64("id", id).
 				Msg("post not found")
 
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
@@ -483,7 +483,7 @@ func (a *Application) PostUpdateByID(ctx *gin.Context) {
 	}
 
 	idRaw := ctx.Param("id")
-	id, err := strconv.Atoi(idRaw)
+	id, err := strconv.ParseUint(idRaw,10,64)
 
 	if err != nil {
 		log.Info().
@@ -499,7 +499,7 @@ func (a *Application) PostUpdateByID(ctx *gin.Context) {
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
-				Int("id", id).
+				Uint64("id", id).
 				Msg("post not found")
 
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})

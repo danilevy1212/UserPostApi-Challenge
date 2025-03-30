@@ -11,47 +11,47 @@ import (
 )
 
 // ID filters vertices based on their ID field.
-func ID(id int) predicate.Post {
+func ID(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldID, id))
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.Post {
+func IDEQ(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldID, id))
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.Post {
+func IDNEQ(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldNEQ(FieldID, id))
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.Post {
+func IDIn(ids ...uint64) predicate.Post {
 	return predicate.Post(sql.FieldIn(FieldID, ids...))
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.Post {
+func IDNotIn(ids ...uint64) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldID, ids...))
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.Post {
+func IDGT(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldGT(FieldID, id))
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.Post {
+func IDGTE(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldGTE(FieldID, id))
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.Post {
+func IDLT(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldLT(FieldID, id))
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.Post {
+func IDLTE(id uint64) predicate.Post {
 	return predicate.Post(sql.FieldLTE(FieldID, id))
 }
 
@@ -71,7 +71,7 @@ func CreatedAt(v time.Time) predicate.Post {
 }
 
 // UserID applies equality check predicate on the "user_id" field. It's identical to UserIDEQ.
-func UserID(v int) predicate.Post {
+func UserID(v uint64) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldUserID, v))
 }
 
@@ -251,22 +251,22 @@ func CreatedAtLTE(v time.Time) predicate.Post {
 }
 
 // UserIDEQ applies the EQ predicate on the "user_id" field.
-func UserIDEQ(v int) predicate.Post {
+func UserIDEQ(v uint64) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldUserID, v))
 }
 
 // UserIDNEQ applies the NEQ predicate on the "user_id" field.
-func UserIDNEQ(v int) predicate.Post {
+func UserIDNEQ(v uint64) predicate.Post {
 	return predicate.Post(sql.FieldNEQ(FieldUserID, v))
 }
 
 // UserIDIn applies the In predicate on the "user_id" field.
-func UserIDIn(vs ...int) predicate.Post {
+func UserIDIn(vs ...uint64) predicate.Post {
 	return predicate.Post(sql.FieldIn(FieldUserID, vs...))
 }
 
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
-func UserIDNotIn(vs ...int) predicate.Post {
+func UserIDNotIn(vs ...uint64) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldUserID, vs...))
 }
 

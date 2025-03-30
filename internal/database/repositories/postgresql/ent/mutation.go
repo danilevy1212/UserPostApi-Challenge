@@ -34,13 +34,13 @@ type PostMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uint64
 	title         *string
 	content       *string
 	created_at    *time.Time
 	updated_at    *time.Time
 	clearedFields map[string]struct{}
-	user          *int
+	user          *uint64
 	cleareduser   bool
 	done          bool
 	oldValue      func(context.Context) (*Post, error)
@@ -67,7 +67,7 @@ func newPostMutation(c config, op Op, opts ...postOption) *PostMutation {
 }
 
 // withPostID sets the ID field of the mutation.
-func withPostID(id int) postOption {
+func withPostID(id uint64) postOption {
 	return func(m *PostMutation) {
 		var (
 			err   error
@@ -117,9 +117,15 @@ func (m PostMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Post entities.
+func (m *PostMutation) SetID(id uint64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PostMutation) ID() (id int, exists bool) {
+func (m *PostMutation) ID() (id uint64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -130,12 +136,12 @@ func (m *PostMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PostMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *PostMutation) IDs(ctx context.Context) ([]uint64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uint64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -254,12 +260,12 @@ func (m *PostMutation) ResetCreatedAt() {
 }
 
 // SetUserID sets the "user_id" field.
-func (m *PostMutation) SetUserID(i int) {
-	m.user = &i
+func (m *PostMutation) SetUserID(u uint64) {
+	m.user = &u
 }
 
 // UserID returns the value of the "user_id" field in the mutation.
-func (m *PostMutation) UserID() (r int, exists bool) {
+func (m *PostMutation) UserID() (r uint64, exists bool) {
 	v := m.user
 	if v == nil {
 		return
@@ -270,7 +276,7 @@ func (m *PostMutation) UserID() (r int, exists bool) {
 // OldUserID returns the old "user_id" field's value of the Post entity.
 // If the Post object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldUserID(ctx context.Context) (v int, err error) {
+func (m *PostMutation) OldUserID(ctx context.Context) (v uint64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
 	}
@@ -339,7 +345,7 @@ func (m *PostMutation) UserCleared() bool {
 // UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // UserID instead. It exists only for internal usage by the builders.
-func (m *PostMutation) UserIDs() (ids []int) {
+func (m *PostMutation) UserIDs() (ids []uint64) {
 	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
@@ -470,7 +476,7 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		m.SetCreatedAt(v)
 		return nil
 	case post.FieldUserID:
-		v, ok := value.(int)
+		v, ok := value.(uint64)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -633,14 +639,14 @@ type UserMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
+	id            *uint64
 	name          *string
 	email         *string
 	created_at    *time.Time
 	updated_at    *time.Time
 	clearedFields map[string]struct{}
-	posts         map[int]struct{}
-	removedposts  map[int]struct{}
+	posts         map[uint64]struct{}
+	removedposts  map[uint64]struct{}
 	clearedposts  bool
 	done          bool
 	oldValue      func(context.Context) (*User, error)
@@ -667,7 +673,7 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 }
 
 // withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
+func withUserID(id uint64) userOption {
 	return func(m *UserMutation) {
 		var (
 			err   error
@@ -717,9 +723,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of User entities.
+func (m *UserMutation) SetID(id uint64) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *UserMutation) ID() (id uint64, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -730,12 +742,12 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *UserMutation) IDs(ctx context.Context) ([]uint64, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uint64{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -890,9 +902,9 @@ func (m *UserMutation) ResetUpdatedAt() {
 }
 
 // AddPostIDs adds the "posts" edge to the Post entity by ids.
-func (m *UserMutation) AddPostIDs(ids ...int) {
+func (m *UserMutation) AddPostIDs(ids ...uint64) {
 	if m.posts == nil {
-		m.posts = make(map[int]struct{})
+		m.posts = make(map[uint64]struct{})
 	}
 	for i := range ids {
 		m.posts[ids[i]] = struct{}{}
@@ -910,9 +922,9 @@ func (m *UserMutation) PostsCleared() bool {
 }
 
 // RemovePostIDs removes the "posts" edge to the Post entity by IDs.
-func (m *UserMutation) RemovePostIDs(ids ...int) {
+func (m *UserMutation) RemovePostIDs(ids ...uint64) {
 	if m.removedposts == nil {
-		m.removedposts = make(map[int]struct{})
+		m.removedposts = make(map[uint64]struct{})
 	}
 	for i := range ids {
 		delete(m.posts, ids[i])
@@ -921,7 +933,7 @@ func (m *UserMutation) RemovePostIDs(ids ...int) {
 }
 
 // RemovedPosts returns the removed IDs of the "posts" edge to the Post entity.
-func (m *UserMutation) RemovedPostsIDs() (ids []int) {
+func (m *UserMutation) RemovedPostsIDs() (ids []uint64) {
 	for id := range m.removedposts {
 		ids = append(ids, id)
 	}
@@ -929,7 +941,7 @@ func (m *UserMutation) RemovedPostsIDs() (ids []int) {
 }
 
 // PostsIDs returns the "posts" edge IDs in the mutation.
-func (m *UserMutation) PostsIDs() (ids []int) {
+func (m *UserMutation) PostsIDs() (ids []uint64) {
 	for id := range m.posts {
 		ids = append(ids, id)
 	}

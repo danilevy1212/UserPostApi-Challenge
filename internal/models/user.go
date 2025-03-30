@@ -1,13 +1,13 @@
 package models
 
 type User struct {
-	ID    int    `json:"id"`
+	ID    uint64 `json:"id"`
 	Name  string `json:"name"  binding:"required"`
 	Email string `json:"email" binding:"required,email"`
 }
 
 type UserUpdate struct {
-	ID    *int   `json:"id"`
-	Name  string `json:"name"  binding:"required"`
-	Email string `json:"email" binding:"required,email"`
+	ID    *uint64 `json:"id"`
+	Name  string  `json:"name"  binding:"required"`
+	Email string  `json:"email" binding:"required,email"`
 }

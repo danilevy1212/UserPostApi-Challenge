@@ -65,7 +65,7 @@ var (
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
-	UserIDValidator func(int) error
+	UserIDValidator func(uint64) error
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
 	DefaultUpdatedAt func() time.Time
 	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.

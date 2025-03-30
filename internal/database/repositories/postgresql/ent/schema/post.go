@@ -15,6 +15,7 @@ type Post struct {
 // Fields of the Post.
 func (Post) Fields() []ent.Field {
 	return []ent.Field{
+		field.Uint64("id"),
 		field.String("title").
 			NotEmpty(),
 		field.String("content").
@@ -22,7 +23,7 @@ func (Post) Fields() []ent.Field {
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),
-		field.Int("user_id").
+		field.Uint64("user_id").
 			Positive().
 			Immutable(),
 		field.Time("updated_at").

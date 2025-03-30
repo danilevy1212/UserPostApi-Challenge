@@ -10,8 +10,8 @@ type PingFunc func(context.Context) error
 
 type UserCreateFunc func(context.Context, models.User) (*models.User, error)
 type UserGetAllFunc func(context.Context) ([]*models.User, error)
-type UserGetByIDFunc func(context.Context, int) (*models.User, error)
-type UserDeleteByIDFunc func(context.Context, int) error
+type UserGetByIDFunc func(context.Context, uint64) (*models.User, error)
+type UserDeleteByIDFunc func(context.Context, uint64) error
 type UserUpdateFunc func(context.Context, models.UserUpdate) (*models.User, error)
 
 var InMemoryDBPingFn PingFunc = func(c context.Context) error {
@@ -38,14 +38,14 @@ var InMemoryUserGetAllFn UserGetAllFunc = func(ctx context.Context) ([]*models.U
 		},
 	}, nil
 }
-var InMemoryUserGetByIDFn UserGetByIDFunc = func(ctx context.Context, id int) (*models.User, error) {
+var InMemoryUserGetByIDFn UserGetByIDFunc = func(ctx context.Context, id uint64) (*models.User, error) {
 	return &models.User{
 		ID:    id,
 		Name:  "Daniel Levy Moreno",
 		Email: "danielmorenolevy@gmail.com",
 	}, nil
 }
-var InMemoryUserDeleteByIDFn UserDeleteByIDFunc = func(ctx context.Context, i int) error {
+var InMemoryUserDeleteByIDFn UserDeleteByIDFunc = func(ctx context.Context, i uint64) error {
 	return nil
 }
 var InMemoryUserUpdateFn UserUpdateFunc = func(ctx context.Context, u models.UserUpdate) (*models.User, error) {
@@ -58,8 +58,8 @@ var InMemoryUserUpdateFn UserUpdateFunc = func(ctx context.Context, u models.Use
 
 type PostCreateFunc func(ctx context.Context, post models.Post) (*models.Post, error)
 type PostGetAllFunc func(ctx context.Context) ([]*models.Post, error)
-type PostGetByIDFunc func(ctx context.Context, id int) (*models.Post, error)
-type PostDeleteByIDFunc func(ctx context.Context, id int) error
+type PostGetByIDFunc func(ctx context.Context, id uint64) (*models.Post, error)
+type PostDeleteByIDFunc func(ctx context.Context, id uint64) error
 type PostUpdateFunc func(ctx context.Context, post models.PostUpdate) (*models.Post, error)
 
 var InMemoryPostCreateFn PostCreateFunc = func(ctx context.Context, post models.Post) (*models.Post, error) {
@@ -94,7 +94,7 @@ var InMemoryPostGetAllFn PostGetAllFunc = func(ctx context.Context) ([]*models.P
 	}, nil
 }
 
-var InMemoryPostGetByIDFn PostGetByIDFunc = func(ctx context.Context, id int) (*models.Post, error) {
+var InMemoryPostGetByIDFn PostGetByIDFunc = func(ctx context.Context, id uint64) (*models.Post, error) {
 	return &models.Post{
 		ID:      id,
 		Title:   "coolio",
@@ -103,7 +103,7 @@ var InMemoryPostGetByIDFn PostGetByIDFunc = func(ctx context.Context, id int) (*
 	}, nil
 }
 
-var InMemoryPostDeleteByIDFn PostDeleteByIDFunc = func(ctx context.Context, id int) error {
+var InMemoryPostDeleteByIDFn PostDeleteByIDFunc = func(ctx context.Context, id uint64) error {
 	return nil
 }
 
@@ -134,11 +134,11 @@ func (im *InMemoryDB) UserGetAll(ctx context.Context) ([]*models.User, error) {
 	return InMemoryUserGetAllFn(ctx)
 }
 
-func (im *InMemoryDB) UserGetByID(ctx context.Context, id int) (*models.User, error) {
+func (im *InMemoryDB) UserGetByID(ctx context.Context, id uint64) (*models.User, error) {
 	return InMemoryUserGetByIDFn(ctx, id)
 }
 
-func (im *InMemoryDB) UserDeleteByID(ctx context.Context, id int) error {
+func (im *InMemoryDB) UserDeleteByID(ctx context.Context, id uint64) error {
 	return InMemoryUserDeleteByIDFn(ctx, id)
 }
 
@@ -155,11 +155,11 @@ func (im *InMemoryDB) PostGetAll(ctx context.Context) ([]*models.Post, error) {
 	return InMemoryPostGetAllFn(ctx)
 }
 
-func (im *InMemoryDB) PostGetByID(ctx context.Context, id int) (*models.Post, error) {
+func (im *InMemoryDB) PostGetByID(ctx context.Context, id uint64) (*models.Post, error) {
 	return InMemoryPostGetByIDFn(ctx, id)
 }
 
-func (im *InMemoryDB) PostDeleteByID(ctx context.Context, id int) error {
+func (im *InMemoryDB) PostDeleteByID(ctx context.Context, id uint64) error {
 	return InMemoryPostDeleteByIDFn(ctx, id)
 }
 

@@ -1,14 +1,14 @@
 package models
 
 type Post struct {
-	ID      int   `json:"id"`
+	ID      uint64 `json:"id"`
 	Title   string `json:"title" binding:"required"`
 	Content string `json:"content" binding:"required"`
-	UserID  int    `json:"user_id" binding:"required"`
+	UserID  uint64 `json:"user_id" binding:"required"`
 }
 
 type PostUpdate struct {
-	ID      *int   `json:"id"`
-	Title   string `json:"title" binding:"required"`
-	Content string `json:"content" binding:"required"`
+	ID      *uint64 `json:"id"`
+	Title   string  `json:"title" binding:"required"`
+	Content string  `json:"content" binding:"required"`
 }
