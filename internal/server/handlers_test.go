@@ -408,3 +408,50 @@ func Test_Application_PostCreate(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
+
+func Test_Application_PostGetAll(t *testing.T) {
+	app.Router.GET("/posts", app.PostGetAll)
+
+	t.Run("should return 200 with all data", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 200 with all data when empty", func(t *testing.T) {
+		oldPostGetAllFunc := inmemory.InMemoryPostGetAllFn
+		defer func() {
+			inmemory.InMemoryPostGetAllFn = oldPostGetAllFunc
+		}()
+		inmemory.InMemoryPostGetAllFn = func(ctx context.Context) ([]*models.Post, error) {
+			return []*models.Post{}, nil
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldPostGetAllFunc := inmemory.InMemoryPostGetAllFn
+		defer func() {
+			inmemory.InMemoryPostGetAllFn = oldPostGetAllFunc
+		}()
+		inmemory.InMemoryPostGetAllFn = func(ctx context.Context) ([]*models.Post, error) {
+			return nil, errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}

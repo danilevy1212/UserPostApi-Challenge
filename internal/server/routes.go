@@ -19,4 +19,5 @@ func (a *Application) RegisterRoutes() {
 	// Posts
 	postRoutes := r.Group("/posts")
 	postRoutes.POST("/", a.PostCreate)
+	postRoutes.GET("/", a.PostGetAll)
 }

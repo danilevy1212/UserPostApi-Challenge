@@ -347,3 +347,38 @@ func (a *Application) PostCreate(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusCreated, post)
 }
+
+func (a *Application) PostGetAll(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "PostGetAll").
+		Logger()
+
+	dbPosts, err := a.DB.PostGetAll(reqContext)
+
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("error querying database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	result := make([]models.Post, 0, len(dbPosts))
+	for _, dbP := range dbPosts {
+		post := models.Post{
+			ID:      dbP.ID,
+			Title:   dbP.Title,
+			Content: dbP.Content,
+			UserID:  dbP.UserID,
+		}
+
+		result = append(result, post)
+	}
+
+	ctx.JSON(http.StatusOK, result)
+}
