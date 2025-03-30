@@ -1,7 +1,5 @@
 package server
 
-// TODO  TEST!!!!
-
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/logger"

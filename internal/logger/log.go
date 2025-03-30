@@ -1,7 +1,5 @@
 package logger
 
-// TODO  TEST!!!
-
 import (
 	"io"
 	"os"

@@ -1,7 +1,5 @@
 package server
 
-// TODO  TEST!!!!
-
 import (
 	"fmt"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/config"
@@ -30,8 +28,8 @@ func New() Application {
 
 	r := gin.New()
 
-	// TODO  Remove hardcoding, pass through config
 	r.SetTrustedProxies(strings.Split("127.0.0.1", ","))
+	r.RemoveExtraSlash = true
 
 	l := logger.New(c.IsDev)
 
