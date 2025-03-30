@@ -308,11 +308,11 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 	})
 
 	t.Run("should return 404 when user is not found", func(t *testing.T) {
-		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
+		oldUserUpdateFunc := inmemory.InMemoryUserUpdateFn
 		defer func() {
-			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
+			inmemory.InMemoryUserUpdateFn = oldUserUpdateFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
+		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user models.UserUpdate) (*models.User, error) {
 			return nil, &ent.NotFoundError{}
 		}
 		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
@@ -328,7 +328,7 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 		defer func() {
 			inmemory.InMemoryUserUpdateFn = oldUserUpdateFunc
 		}()
-		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user models.User) (*models.User, error) {
+		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user models.UserUpdate) (*models.User, error) {
 			return nil, &ent.ConstraintError{}
 		}
 		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"name":"Daniel Levy Moreno","email":"danielmorenolevy@gmail.com"}`)))
@@ -340,11 +340,11 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 	})
 
 	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
-		oldUserGetByIDFunc := inmemory.InMemoryUserGetByIDFn
+		oldUserUpdateFunc := inmemory.InMemoryUserUpdateFn
 		defer func() {
-			inmemory.InMemoryUserGetByIDFn = oldUserGetByIDFunc
+			inmemory.InMemoryUserUpdateFn = oldUserUpdateFunc
 		}()
-		inmemory.InMemoryUserGetByIDFn = func(ctx context.Context, id int) (*models.User, error) {
+		inmemory.InMemoryUserUpdateFn = func(ctx context.Context, user models.UserUpdate) (*models.User, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 
@@ -580,15 +580,6 @@ func Test_Application_PostUpdateByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 
-	t.Run("should return 422 when post is malformed", func(t *testing.T) {
-		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{}`)))
-		w := httptest.NewRecorder()
-		app.Router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
-		snaps.MatchJSON(t, w.Body.String())
-	})
-
 	t.Run("should return 400 when id is malformed", func(t *testing.T) {
 		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/hahaha", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
 		w := httptest.NewRecorder()
@@ -599,11 +590,11 @@ func Test_Application_PostUpdateByID(t *testing.T) {
 	})
 
 	t.Run("should return 404 when post is not found", func(t *testing.T) {
-		oldPostGetByIDFunc := inmemory.InMemoryPostGetByIDFn
+		oldPostUpdateFn := inmemory.InMemoryPostUpdateFn
 		defer func() {
-			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
+			inmemory.InMemoryPostUpdateFn = oldPostUpdateFn
 		}()
-		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+		inmemory.InMemoryPostUpdateFn = func(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
 			return nil, &ent.NotFoundError{}
 		}
 		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
@@ -614,12 +605,37 @@ func Test_Application_PostUpdateByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 
-	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
-		oldPostGetByIDFunc := inmemory.InMemoryPostGetByIDFn
+	t.Run("should return 409 when user id doesn't exists", func(t *testing.T) {
+		oldPostUpdateFn := inmemory.InMemoryPostUpdateFn
 		defer func() {
-			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
+			inmemory.InMemoryPostUpdateFn = oldPostUpdateFn
 		}()
-		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+		inmemory.InMemoryPostUpdateFn = func(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
+			return nil, &ent.ConstraintError{}
+		}
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 422 when post is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldPostUpdateFn := inmemory.InMemoryPostUpdateFn
+		defer func() {
+			inmemory.InMemoryPostUpdateFn = oldPostUpdateFn
+		}()
+		inmemory.InMemoryPostUpdateFn = func(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
 			return nil, errors.New("You've met a terrible fate, haven't you?")
 		}
 

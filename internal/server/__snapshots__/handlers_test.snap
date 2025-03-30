@@ -275,3 +275,9 @@
  "error": "service unavailable"
 }
 ---
+
+[Test_Application_PostUpdateByID/should_return_409_when_user_id_doesn't_exists - 1]
+{
+ "error": "userID doesn't exist"
+}
+---

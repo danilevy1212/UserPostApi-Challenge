@@ -12,30 +12,27 @@ type UserCreateFunc func(context.Context, models.User) (*models.User, error)
 type UserGetAllFunc func(context.Context) ([]*models.User, error)
 type UserGetByIDFunc func(context.Context, int) (*models.User, error)
 type UserDeleteByIDFunc func(context.Context, int) error
-type UserUpdateFunc func(context.Context, models.User) (*models.User, error)
+type UserUpdateFunc func(context.Context, models.UserUpdate) (*models.User, error)
 
 var InMemoryDBPingFn PingFunc = func(c context.Context) error {
 	return nil
 }
 var InMemoryUserCreateFn UserCreateFunc = func(ctx context.Context, user models.User) (*models.User, error) {
-	id := 1
 	return &models.User{
-		ID:    &id,
+		ID:    1,
 		Name:  user.Name,
 		Email: user.Email,
 	}, nil
 }
 var InMemoryUserGetAllFn UserGetAllFunc = func(ctx context.Context) ([]*models.User, error) {
-	id1 := 1
-	id2 := 2
 	return []*models.User{
 		{
-			ID:    &id1,
+			ID:    1,
 			Name:  "John Doe",
 			Email: "johnnydoe@gmail.com",
 		},
 		{
-			ID:    &id2,
+			ID:    2,
 			Name:  "Daniel Levy Moreno",
 			Email: "danielmorenolevy@gmail.com",
 		},
@@ -43,7 +40,7 @@ var InMemoryUserGetAllFn UserGetAllFunc = func(ctx context.Context) ([]*models.U
 }
 var InMemoryUserGetByIDFn UserGetByIDFunc = func(ctx context.Context, id int) (*models.User, error) {
 	return &models.User{
-		ID:    &id,
+		ID:    id,
 		Name:  "Daniel Levy Moreno",
 		Email: "danielmorenolevy@gmail.com",
 	}, nil
@@ -51,10 +48,9 @@ var InMemoryUserGetByIDFn UserGetByIDFunc = func(ctx context.Context, id int) (*
 var InMemoryUserDeleteByIDFn UserDeleteByIDFunc = func(ctx context.Context, i int) error {
 	return nil
 }
-var InMemoryUserUpdateFn UserUpdateFunc = func(ctx context.Context, u models.User) (*models.User, error) {
-	id := 1
+var InMemoryUserUpdateFn UserUpdateFunc = func(ctx context.Context, u models.UserUpdate) (*models.User, error) {
 	return &models.User{
-		ID:    &id,
+		ID:    1,
 		Name:  "Daniel Levy Moreno",
 		Email: "danielmorenolevy@gmail.com",
 	}, nil
@@ -67,9 +63,8 @@ type PostDeleteByIDFunc func(ctx context.Context, id int) error
 type PostUpdateFunc func(ctx context.Context, post models.PostUpdate) (*models.Post, error)
 
 var InMemoryPostCreateFn PostCreateFunc = func(ctx context.Context, post models.Post) (*models.Post, error) {
-	id := 1
 	return &models.Post{
-		ID:      &id,
+		ID:      1,
 		Title:   "coolio",
 		Content: "coolest content",
 		UserID:  1,
@@ -77,25 +72,21 @@ var InMemoryPostCreateFn PostCreateFunc = func(ctx context.Context, post models.
 }
 
 var InMemoryPostGetAllFn PostGetAllFunc = func(ctx context.Context) ([]*models.Post, error) {
-	id1 := 1
-	id2 := 2
-	id3 := 3
-
 	return []*models.Post{
 		{
-			ID:      &id1,
+			ID:      1,
 			Title:   "coolio",
 			Content: "coolest content",
 			UserID:  1,
 		},
 		{
-			ID:      &id2,
+			ID:      2,
 			Title:   "another coolio",
 			Content: "another coolest content",
 			UserID:  1,
 		},
 		{
-			ID:      &id3,
+			ID:      3,
 			Title:   "more coolio",
 			Content: "coolest content?",
 			UserID:  2,
@@ -105,7 +96,7 @@ var InMemoryPostGetAllFn PostGetAllFunc = func(ctx context.Context) ([]*models.P
 
 var InMemoryPostGetByIDFn PostGetByIDFunc = func(ctx context.Context, id int) (*models.Post, error) {
 	return &models.Post{
-		ID:      &id,
+		ID:      id,
 		Title:   "coolio",
 		Content: "coolest content",
 		UserID:  1,
@@ -118,7 +109,7 @@ var InMemoryPostDeleteByIDFn PostDeleteByIDFunc = func(ctx context.Context, id i
 
 var InMemoryPostUpdateFn PostUpdateFunc = func(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
 	return &models.Post{
-		ID:      post.ID,
+		ID:      *post.ID,
 		Title:   "coolio",
 		Content: "coolest content",
 		UserID:  1,
@@ -151,7 +142,7 @@ func (im *InMemoryDB) UserDeleteByID(ctx context.Context, id int) error {
 	return InMemoryUserDeleteByIDFn(ctx, id)
 }
 
-func (im *InMemoryDB) UserUpdate(ctx context.Context, user models.User) (*models.User, error) {
+func (im *InMemoryDB) UserUpdate(ctx context.Context, user models.UserUpdate) (*models.User, error) {
 	return InMemoryUserUpdateFn(ctx, user)
 }
 

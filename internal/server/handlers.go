@@ -225,7 +225,6 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 
 	var user models.User
 	err := ctx.ShouldBindBodyWithJSON(&user)
-
 	if err != nil {
 		log.Info().
 			Err(err).
@@ -239,7 +238,6 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 
 	idRaw := ctx.Param("id")
 	id, err := strconv.Atoi(idRaw)
-
 	if err != nil {
 		log.Info().
 			Str("id", idRaw).
@@ -249,8 +247,11 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 		return
 	}
 
-	dbUser, err := a.DB.UserGetByID(reqContext, id)
-
+	updatedUser, err := a.DB.UserUpdate(reqContext, models.UserUpdate{
+		ID:    &id,
+		Name:  user.Name,
+		Email: user.Email,
+	})
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
@@ -260,22 +261,6 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			return
 		}
-
-		log.Error().
-			Err(err).
-			Msg("error querying database")
-
-		ctx.JSON(http.StatusServiceUnavailable, gin.H{
-			"error": "service unavailable",
-		})
-		return
-	}
-
-	dbUser.Email = user.Email
-	dbUser.Name = user.Name
-
-	dbUser, err = a.DB.UserUpdate(reqContext, *dbUser)
-	if err != nil {
 		if ent.IsConstraintError(err) {
 			log.Info().
 				Interface("user", user).
@@ -295,9 +280,7 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 		return
 	}
 
-	user.ID = dbUser.ID
-
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(http.StatusOK, updatedUser)
 }
 
 // POSTS
@@ -327,9 +310,9 @@ func (a *Application) PostCreate(ctx *gin.Context) {
 		if ent.IsConstraintError(err) {
 			log.Info().
 				Interface("post", post).
-				Msg("post already exists")
+				Msg("associated userID not in DB")
 
-			ctx.JSON(http.StatusConflict, gin.H{"error": "post already exists"})
+			ctx.JSON(http.StatusConflict, gin.H{"error": "userID doesn't exist"})
 			return
 		}
 
@@ -511,7 +494,8 @@ func (a *Application) PostUpdateByID(ctx *gin.Context) {
 		return
 	}
 
-	_, err = a.DB.PostGetByID(reqContext, id)
+	post.ID = &id
+	updatedPost, err := a.DB.PostUpdate(reqContext, post)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			log.Info().
@@ -522,19 +506,15 @@ func (a *Application) PostUpdateByID(ctx *gin.Context) {
 			return
 		}
 
-		log.Error().
-			Err(err).
-			Msg("error querying database")
+		if ent.IsConstraintError(err) {
+			log.Info().
+				Interface("post", post).
+				Msg("associated userID not in DB")
 
-		ctx.JSON(http.StatusServiceUnavailable, gin.H{
-			"error": "service unavailable",
-		})
-		return
-	}
+			ctx.JSON(http.StatusConflict, gin.H{"error": "userID doesn't exist"})
+			return
+		}
 
-	post.ID = &id
-	dbPost, err := a.DB.PostUpdate(reqContext, post)
-	if err != nil {
 		log.Error().
 			Err(err).
 			Msg("error updating post in database")
@@ -545,5 +525,5 @@ func (a *Application) PostUpdateByID(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, dbPost)
+	ctx.JSON(http.StatusOK, updatedPost)
 }

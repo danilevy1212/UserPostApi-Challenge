@@ -67,8 +67,12 @@ func (pg *PostgresqlClient) UserCreate(ctx context.Context, user models.User) (*
 			Msg("error while creating user")
 	}
 
+	log.Info().
+		Interface("user", u).
+		Msg("user created")
+
 	return &models.User{
-		ID:    &u.ID,
+		ID:    u.ID,
 		Email: u.Email,
 		Name:  u.Name,
 	}, err
@@ -88,10 +92,14 @@ func (pg *PostgresqlClient) UserGetAll(ctx context.Context) ([]*models.User, err
 			Msg("error while querying users")
 	}
 
+	log.Info().
+		Interface("users", users).
+		Msg("users retrieved from DB")
+
 	result := make([]*models.User, 0, len(users))
 	for _, u := range users {
 		result = append(result, &models.User{
-			ID:    &u.ID,
+			ID:    u.ID,
 			Name:  u.Name,
 			Email: u.Email,
 		})
@@ -118,8 +126,12 @@ func (pg *PostgresqlClient) UserGetByID(ctx context.Context, id int) (*models.Us
 		return nil, err
 	}
 
+	log.Info().
+		Interface("user", user).
+		Msg("user retrieved from DB")
+
 	return &models.User{
-		ID:    &id,
+		ID:    id,
 		Email: user.Email,
 		Name:  user.Name,
 	}, err
@@ -134,15 +146,23 @@ func (pg *PostgresqlClient) UserDeleteByID(ctx context.Context, id int) error {
 
 	err := pg.User.DeleteOneID(id).Exec(ctx)
 
-	if err != nil && !ent.IsNotFound(err) {
-		log.Err(err).
-			Msg("error while deleting user")
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			log.Err(err).
+				Msg("error while deleting user")
+		}
+
+		return err
 	}
 
-	return err
+	log.Info().
+		Int("id", id).
+		Msg("user deleted")
+
+	return nil
 }
 
-func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user models.User) (*models.User, error) {
+func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user models.UserUpdate) (*models.User, error) {
 	log := logger.
 		FromContext(ctx).
 		With().
@@ -155,20 +175,22 @@ func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user models.User) (*
 		Save(ctx)
 
 	if err != nil {
-		log.Err(err).
-			Msg("error while updating user")
+		if !ent.IsNotFound(err) && !ent.IsConstraintError(err) {
+			log.Err(err).
+				Msg("error while updating user")
+		}
+
 		return nil, err
 	}
 
 	return &models.User{
-		ID:    &u.ID,
+		ID:    u.ID,
 		Email: u.Email,
 		Name:  u.Name,
 	}, err
 }
 
 // POST
-
 func (pg *PostgresqlClient) PostCreate(ctx context.Context, post models.Post) (*models.Post, error) {
 	log := logger.
 		FromContext(ctx).
@@ -188,13 +210,20 @@ func (pg *PostgresqlClient) PostCreate(ctx context.Context, post models.Post) (*
 		Save(ctx)
 
 	if err != nil {
-		log.Err(err).
-			Msg("error while creating post")
+		if !ent.IsConstraintError(err) {
+			log.Err(err).
+				Msg("error while creating post")
+		}
+
 		return nil, err
 	}
 
+	log.Info().
+		Interface("post", p).
+		Msg("post created")
+
 	return &models.Post{
-		ID:      &p.ID,
+		ID:      p.ID,
 		Title:   p.Title,
 		Content: p.Content,
 		UserID:  p.ID,
@@ -216,10 +245,14 @@ func (pg *PostgresqlClient) PostGetAll(ctx context.Context) ([]*models.Post, err
 		return nil, err
 	}
 
+	log.Info().
+		Interface("posts", posts).
+		Msg("posts retrieved from DB")
+
 	result := make([]*models.Post, 0, len(posts))
 	for _, p := range posts {
 		result = append(result, &models.Post{
-			ID:      &p.ID,
+			ID:      p.ID,
 			Title:   p.Title,
 			Content: p.Content,
 			UserID:  p.UserID,
@@ -247,8 +280,12 @@ func (pg *PostgresqlClient) PostGetByID(ctx context.Context, id int) (*models.Po
 		return nil, err
 	}
 
+	log.Info().
+		Interface("post", post).
+		Msg("post retrieved from DB")
+
 	return &models.Post{
-		ID:      &id,
+		ID:      id,
 		Title:   post.Title,
 		Content: post.Content,
 		UserID:  post.UserID,
@@ -264,12 +301,20 @@ func (pg *PostgresqlClient) PostDeleteByID(ctx context.Context, id int) error {
 
 	err := pg.Post.DeleteOneID(id).Exec(ctx)
 
-	if err != nil && !ent.IsNotFound(err) {
-		log.Err(err).
-			Msg("error while deleting post")
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			log.Err(err).
+				Msg("error while deleting post")
+		}
+
+		return err
 	}
 
-	return err
+	log.Info().
+		Int("id", id).
+		Msg("post deleted")
+
+	return nil
 }
 
 func (pg *PostgresqlClient) PostUpdate(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
@@ -285,13 +330,20 @@ func (pg *PostgresqlClient) PostUpdate(ctx context.Context, post models.PostUpda
 		Save(ctx)
 
 	if err != nil {
-		log.Err(err).
-			Msg("error while updating post")
+		if !ent.IsNotFound(err) && !ent.IsConstraintError(err) {
+			log.Err(err).
+				Msg("error while updating post")
+		}
+
 		return nil, err
 	}
 
+	log.Info().
+		Interface("post", p).
+		Msg("post retrieved from DB")
+
 	return &models.Post{
-		ID:      &p.ID,
+		ID:      p.ID,
 		Title:   p.Title,
 		Content: p.Content,
 		UserID:  p.UserID,

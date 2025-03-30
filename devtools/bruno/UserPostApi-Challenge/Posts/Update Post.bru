@@ -6,10 +6,18 @@ meta {
 
 put {
   url: {{baseUrl}}/posts/:id
-  body: none
+  body: json
   auth: none
 }
 
 params:path {
   id: 
+}
+
+body:json {
+  {
+    "id": 1,
+    "title": "An essay",
+    "content": "Not much to say"
+  }
 }
