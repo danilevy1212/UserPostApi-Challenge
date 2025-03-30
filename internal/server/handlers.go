@@ -477,3 +477,73 @@ func (a *Application) PostDeleteByID(ctx *gin.Context) {
 
 	ctx.Status(http.StatusNoContent)
 }
+
+func (a *Application) PostUpdateByID(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "PostUpdateByID").
+		Logger()
+
+	var post models.PostUpdate
+	err := ctx.ShouldBindBodyWithJSON(&post)
+
+	if err != nil {
+		log.Info().
+			Err(err).
+			Msg("error validating new post")
+
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "bad entity",
+		})
+		return
+	}
+
+	idRaw := ctx.Param("id")
+	id, err := strconv.Atoi(idRaw)
+
+	if err != nil {
+		log.Info().
+			Str("id", idRaw).
+			Msg("invalid id")
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	_, err = a.DB.PostGetByID(reqContext, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Info().
+				Int("id", id).
+				Msg("post not found")
+
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error querying database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	post.ID = &id
+	dbPost, err := a.DB.PostUpdate(reqContext, post)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("error updating post in database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dbPost)
+}

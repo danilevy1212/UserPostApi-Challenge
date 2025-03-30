@@ -242,3 +242,36 @@
  "error": "service unavailable"
 }
 ---
+
+[Test_Application_PostUpdateByID/should_return_200_when_post_is_updated - 1]
+{
+ "content": "coolest content",
+ "id": 1,
+ "title": "coolio",
+ "user_id": 1
+}
+---
+
+[Test_Application_PostUpdateByID/should_return_422_when_post_is_malformed - 1]
+{
+ "error": "bad entity"
+}
+---
+
+[Test_Application_PostUpdateByID/should_return_400_when_id_is_malformed - 1]
+{
+ "error": "invalid id"
+}
+---
+
+[Test_Application_PostUpdateByID/should_return_404_when_post_is_not_found - 1]
+{
+ "error": "post not found"
+}
+---
+
+[Test_Application_PostUpdateByID/should_return_503_when_unexpected_error_happens - 1]
+{
+ "error": "service unavailable"
+}
+---

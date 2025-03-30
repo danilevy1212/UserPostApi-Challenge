@@ -567,3 +567,66 @@ func Test_Application_PostDeleteByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
+
+func Test_Application_PostUpdateByID(t *testing.T) {
+	app.Router.PUT("/posts/:id", app.PostUpdateByID)
+
+	t.Run("should return 200 when post is updated", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 422 when post is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusUnprocessableEntity, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 400 when id is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/hahaha", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 404 when post is not found", func(t *testing.T) {
+		oldPostGetByIDFunc := inmemory.InMemoryPostGetByIDFn
+		defer func() {
+			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
+		}()
+		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+			return nil, &ent.NotFoundError{}
+		}
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldPostGetByIDFunc := inmemory.InMemoryPostGetByIDFn
+		defer func() {
+			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
+		}()
+		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+			return nil, errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPut, "/posts/1", strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}
