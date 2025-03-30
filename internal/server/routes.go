@@ -17,4 +17,6 @@ func (a *Application) RegisterRoutes() {
 	userRoutes.PUT("/:id", a.UserUpdateByID)
 
 	// Posts
+	postRoutes := r.Group("/posts")
+	postRoutes.POST("/", a.PostCreate)
 }

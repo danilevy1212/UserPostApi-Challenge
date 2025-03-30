@@ -47,6 +47,12 @@ func (pc *PostCreate) SetNillableCreatedAt(t *time.Time) *PostCreate {
 	return pc
 }
 
+// SetUserID sets the "user_id" field.
+func (pc *PostCreate) SetUserID(i int) *PostCreate {
+	pc.mutation.SetUserID(i)
+	return pc
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (pc *PostCreate) SetUpdatedAt(t time.Time) *PostCreate {
 	pc.mutation.SetUpdatedAt(t)
@@ -61,15 +67,9 @@ func (pc *PostCreate) SetNillableUpdatedAt(t *time.Time) *PostCreate {
 	return pc
 }
 
-// SetUserIDID sets the "user_id" edge to the User entity by ID.
-func (pc *PostCreate) SetUserIDID(id int) *PostCreate {
-	pc.mutation.SetUserIDID(id)
-	return pc
-}
-
-// SetUserID sets the "user_id" edge to the User entity.
-func (pc *PostCreate) SetUserID(u *User) *PostCreate {
-	return pc.SetUserIDID(u.ID)
+// SetUser sets the "user" edge to the User entity.
+func (pc *PostCreate) SetUser(u *User) *PostCreate {
+	return pc.SetUserID(u.ID)
 }
 
 // Mutation returns the PostMutation object of the builder.
@@ -138,11 +138,19 @@ func (pc *PostCreate) check() error {
 	if _, ok := pc.mutation.CreatedAt(); !ok {
 		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Post.created_at"`)}
 	}
+	if _, ok := pc.mutation.UserID(); !ok {
+		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required field "Post.user_id"`)}
+	}
+	if v, ok := pc.mutation.UserID(); ok {
+		if err := post.UserIDValidator(v); err != nil {
+			return &ValidationError{Name: "user_id", err: fmt.Errorf(`ent: validator failed for field "Post.user_id": %w`, err)}
+		}
+	}
 	if _, ok := pc.mutation.UpdatedAt(); !ok {
 		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Post.updated_at"`)}
 	}
-	if len(pc.mutation.UserIDIDs()) == 0 {
-		return &ValidationError{Name: "user_id", err: errors.New(`ent: missing required edge "Post.user_id"`)}
+	if len(pc.mutation.UserIDs()) == 0 {
+		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "Post.user"`)}
 	}
 	return nil
 }
@@ -186,12 +194,12 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := pc.mutation.UserIDIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.UserIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   post.UserIDTable,
-			Columns: []string{post.UserIDColumn},
+			Table:   post.UserTable,
+			Columns: []string{post.UserColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
@@ -200,7 +208,7 @@ func (pc *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.user_posts = &nodes[0]
+		_node.UserID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

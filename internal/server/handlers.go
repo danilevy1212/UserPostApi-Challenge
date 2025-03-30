@@ -37,6 +37,7 @@ func (a *Application) HealthCheck(ctx *gin.Context) {
 	})
 }
 
+// USERS
 func (a *Application) UserCreate(ctx *gin.Context) {
 	reqContext := ctx.Request.Context()
 	log := logger.FromContext(reqContext).
@@ -297,4 +298,52 @@ func (a *Application) UserUpdateByID(ctx *gin.Context) {
 	user.ID = dbUser.ID
 
 	ctx.JSON(http.StatusOK, user)
+}
+
+// POSTS
+func (a *Application) PostCreate(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "PostCreate").
+		Logger()
+
+	var post models.Post
+	err := ctx.ShouldBindBodyWithJSON(&post)
+
+	if err != nil {
+		log.Info().
+			Err(err).
+			Msg("error validating new post")
+
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": "bad entity",
+		})
+		return
+	}
+
+	dbPost, err := a.DB.PostCreate(reqContext, post)
+	if err != nil {
+		if ent.IsConstraintError(err) {
+			log.Info().
+				Interface("post", post).
+				Msg("post already exists")
+
+			ctx.JSON(http.StatusConflict, gin.H{"error": "post already exists"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error inserting post in database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	post.ID = dbPost.ID
+
+	ctx.JSON(http.StatusCreated, post)
 }

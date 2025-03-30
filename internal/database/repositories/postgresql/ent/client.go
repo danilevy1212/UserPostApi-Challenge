@@ -315,15 +315,15 @@ func (c *PostClient) GetX(ctx context.Context, id int) *Post {
 	return obj
 }
 
-// QueryUserID queries the user_id edge of a Post.
-func (c *PostClient) QueryUserID(po *Post) *UserQuery {
+// QueryUser queries the user edge of a Post.
+func (c *PostClient) QueryUser(po *Post) *UserQuery {
 	query := (&UserClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := po.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(post.Table, post.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, post.UserIDTable, post.UserIDColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, post.UserTable, post.UserColumn),
 		)
 		fromV = sqlgraph.Neighbors(po.driver.Dialect(), step)
 		return fromV, nil

@@ -28,8 +28,12 @@ func init() {
 	postDescCreatedAt := postFields[2].Descriptor()
 	// post.DefaultCreatedAt holds the default value on creation for the created_at field.
 	post.DefaultCreatedAt = postDescCreatedAt.Default.(func() time.Time)
+	// postDescUserID is the schema descriptor for user_id field.
+	postDescUserID := postFields[3].Descriptor()
+	// post.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	post.UserIDValidator = postDescUserID.Validators[0].(func(int) error)
 	// postDescUpdatedAt is the schema descriptor for updated_at field.
-	postDescUpdatedAt := postFields[3].Descriptor()
+	postDescUpdatedAt := postFields[4].Descriptor()
 	// post.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	post.DefaultUpdatedAt = postDescUpdatedAt.Default.(func() time.Time)
 	// post.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

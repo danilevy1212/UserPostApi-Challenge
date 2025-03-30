@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent/post"
 	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent/predicate"
-	"github.com/danilevy1212/UserPostApi-Challenge/internal/database/repositories/postgresql/ent/user"
 )
 
 // PostUpdate is the builder for updating Post entities.
@@ -63,26 +62,9 @@ func (pu *PostUpdate) SetUpdatedAt(t time.Time) *PostUpdate {
 	return pu
 }
 
-// SetUserIDID sets the "user_id" edge to the User entity by ID.
-func (pu *PostUpdate) SetUserIDID(id int) *PostUpdate {
-	pu.mutation.SetUserIDID(id)
-	return pu
-}
-
-// SetUserID sets the "user_id" edge to the User entity.
-func (pu *PostUpdate) SetUserID(u *User) *PostUpdate {
-	return pu.SetUserIDID(u.ID)
-}
-
 // Mutation returns the PostMutation object of the builder.
 func (pu *PostUpdate) Mutation() *PostMutation {
 	return pu.mutation
-}
-
-// ClearUserID clears the "user_id" edge to the User entity.
-func (pu *PostUpdate) ClearUserID() *PostUpdate {
-	pu.mutation.ClearUserID()
-	return pu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -133,8 +115,8 @@ func (pu *PostUpdate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
 		}
 	}
-	if pu.mutation.UserIDCleared() && len(pu.mutation.UserIDIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Post.user_id"`)
+	if pu.mutation.UserCleared() && len(pu.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Post.user"`)
 	}
 	return nil
 }
@@ -159,35 +141,6 @@ func (pu *PostUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := pu.mutation.UpdatedAt(); ok {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if pu.mutation.UserIDCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   post.UserIDTable,
-			Columns: []string{post.UserIDColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.UserIDIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   post.UserIDTable,
-			Columns: []string{post.UserIDColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, pu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -243,26 +196,9 @@ func (puo *PostUpdateOne) SetUpdatedAt(t time.Time) *PostUpdateOne {
 	return puo
 }
 
-// SetUserIDID sets the "user_id" edge to the User entity by ID.
-func (puo *PostUpdateOne) SetUserIDID(id int) *PostUpdateOne {
-	puo.mutation.SetUserIDID(id)
-	return puo
-}
-
-// SetUserID sets the "user_id" edge to the User entity.
-func (puo *PostUpdateOne) SetUserID(u *User) *PostUpdateOne {
-	return puo.SetUserIDID(u.ID)
-}
-
 // Mutation returns the PostMutation object of the builder.
 func (puo *PostUpdateOne) Mutation() *PostMutation {
 	return puo.mutation
-}
-
-// ClearUserID clears the "user_id" edge to the User entity.
-func (puo *PostUpdateOne) ClearUserID() *PostUpdateOne {
-	puo.mutation.ClearUserID()
-	return puo
 }
 
 // Where appends a list predicates to the PostUpdate builder.
@@ -326,8 +262,8 @@ func (puo *PostUpdateOne) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
 		}
 	}
-	if puo.mutation.UserIDCleared() && len(puo.mutation.UserIDIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Post.user_id"`)
+	if puo.mutation.UserCleared() && len(puo.mutation.UserIDs()) > 0 {
+		return errors.New(`ent: clearing a required unique edge "Post.user"`)
 	}
 	return nil
 }
@@ -369,35 +305,6 @@ func (puo *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) 
 	}
 	if value, ok := puo.mutation.UpdatedAt(); ok {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
-	}
-	if puo.mutation.UserIDCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   post.UserIDTable,
-			Columns: []string{post.UserIDColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.UserIDIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   post.UserIDTable,
-			Columns: []string{post.UserIDColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Post{config: puo.config}
 	_spec.Assign = _node.assignValues

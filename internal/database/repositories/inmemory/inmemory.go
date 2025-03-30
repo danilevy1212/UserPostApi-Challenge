@@ -7,6 +7,7 @@ import (
 )
 
 type PingFunc func(context.Context) error
+
 type UserCreateFunc func(context.Context, models.User) (*models.User, error)
 type UserGetAllFunc func(context.Context) ([]*models.User, error)
 type UserGetByIDFunc func(context.Context, int) (*models.User, error)
@@ -59,6 +60,71 @@ var InMemoryUserUpdateFn UserUpdateFunc = func(ctx context.Context, u models.Use
 	}, nil
 }
 
+type PostCreateFunc func(ctx context.Context, post models.Post) (*models.Post, error)
+type PostGetAllFunc func(ctx context.Context) ([]*models.Post, error)
+type PostGetByIDFunc func(ctx context.Context, id int) (*models.Post, error)
+type PostDeleteByIDFunc func(ctx context.Context, id int) error
+type PostUpdateFunc func(ctx context.Context, post models.Post) (*models.Post, error)
+
+var InMemoryPostCreateFn PostCreateFunc = func(ctx context.Context, post models.Post) (*models.Post, error) {
+	id := 1
+	return &models.Post{
+		ID:      &id,
+		Title:   "coolio",
+		Content: "coolest content",
+		UserID:  1,
+	}, nil
+}
+
+var InMemoryPostGetAllFn PostGetAllFunc = func(ctx context.Context) ([]*models.Post, error) {
+	id1 := 1
+	id2 := 2
+	id3 := 3
+
+	return []*models.Post{
+		{
+			ID:      &id1,
+			Title:   "coolio",
+			Content: "coolest content",
+			UserID:  1,
+		},
+		{
+			ID:      &id2,
+			Title:   "another coolio",
+			Content: "another coolest content",
+			UserID:  1,
+		},
+		{
+			ID:      &id3,
+			Title:   "more coolio",
+			Content: "coolest content?",
+			UserID:  2,
+		},
+	}, nil
+}
+
+var InMemoryPostGetByIDFn PostGetByIDFunc = func(ctx context.Context, id int) (*models.Post, error) {
+	return &models.Post{
+		ID:      &id,
+		Title:   "coolio",
+		Content: "coolest content",
+		UserID:  1,
+	}, nil
+}
+
+var InMemoryPostDeleteByIDFn PostDeleteByIDFunc = func(ctx context.Context, id int) error {
+	return nil
+}
+
+var InMemoryPostUpdateFn PostUpdateFunc = func(ctx context.Context, post models.Post) (*models.Post, error) {
+	return &models.Post{
+		ID:      post.ID,
+		Title:   "coolio",
+		Content: "coolest content",
+		UserID:  1,
+	}, nil
+}
+
 type InMemoryDB struct{}
 
 func (im *InMemoryDB) Connection() *sql.DB {
@@ -87,4 +153,25 @@ func (im *InMemoryDB) UserDeleteByID(ctx context.Context, id int) error {
 
 func (im *InMemoryDB) UserUpdate(ctx context.Context, user models.User) (*models.User, error) {
 	return InMemoryUserUpdateFn(ctx, user)
+}
+
+
+func (im *InMemoryDB) PostCreate(ctx context.Context, post models.Post) (*models.Post, error) {
+	return InMemoryPostCreateFn(ctx, post)
+}
+
+func (im *InMemoryDB) PostGetAll(ctx context.Context) ([]*models.Post, error) {
+	return InMemoryPostGetAllFn(ctx)
+}
+
+func (im *InMemoryDB) PostGetByID(ctx context.Context, id int) (*models.Post, error) {
+	return InMemoryPostGetByIDFn(ctx, id)
+}
+
+func (im *InMemoryDB) PostDeleteByID(ctx context.Context, id int) error {
+	return InMemoryPostDeleteByIDFn(ctx, id)
+}
+
+func (im *InMemoryDB) PostUpdate(ctx context.Context, post models.Post) (*models.Post, error) {
+	return InMemoryPostUpdateFn(ctx, post)
 }

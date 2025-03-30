@@ -44,6 +44,7 @@ func (pg *PostgresqlClient) Ping(ctx context.Context) error {
 	return nil
 }
 
+// USER
 func (pg *PostgresqlClient) UserCreate(ctx context.Context, user models.User) (*models.User, error) {
 	log := logger.
 		FromContext(ctx).
@@ -166,6 +167,138 @@ func (pg *PostgresqlClient) UserUpdate(ctx context.Context, user models.User) (*
 	}, err
 }
 
+// POST
+
+func (pg *PostgresqlClient) PostCreate(ctx context.Context, post models.Post) (*models.Post, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.PostCreate").
+		Logger()
+
+	log.Info().
+		Interface("post", post).
+		Msg("creating post")
+
+	p, err := pg.Post.
+		Create().
+		SetTitle(post.Title).
+		SetContent(post.Content).
+		SetUserID(post.UserID).
+		Save(ctx)
+
+	if err != nil {
+		log.Err(err).
+			Msg("error while creating post")
+		return nil, err
+	}
+
+	return &models.Post{
+		ID:      &p.ID,
+		Title:   p.Title,
+		Content: p.Content,
+		UserID:  p.ID,
+	}, err
+}
+
+func (pg *PostgresqlClient) PostGetAll(ctx context.Context) ([]*models.Post, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.PostGetAll").
+		Logger()
+
+	posts, err := pg.Post.Query().All(ctx)
+
+	if err != nil {
+		log.Err(err).
+			Msg("error while querying posts")
+		return nil, err
+	}
+
+	result := make([]*models.Post, 0, len(posts))
+	for _, p := range posts {
+		result = append(result, &models.Post{
+			ID:      &p.ID,
+			Title:   p.Title,
+			Content: p.Content,
+			UserID:  p.UserID,
+		})
+	}
+
+	return result, err
+}
+
+func (pg *PostgresqlClient) PostGetByID(ctx context.Context, id int) (*models.Post, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.PostGetByID").
+		Logger()
+
+	post, err := pg.Post.Get(ctx, id)
+
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			log.Err(err).
+				Msg("error while querying post")
+		}
+
+		return nil, err
+	}
+
+	return &models.Post{
+		ID:      &id,
+		Title:   post.Title,
+		Content: post.Content,
+		UserID:  post.UserID,
+	}, err
+}
+
+func (pg *PostgresqlClient) PostDeleteByID(ctx context.Context, id int) error {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.PostDeleteByID").
+		Logger()
+
+	err := pg.Post.DeleteOneID(id).Exec(ctx)
+
+	if err != nil && !ent.IsNotFound(err) {
+		log.Err(err).
+			Msg("error while deleting post")
+	}
+
+	return err
+}
+
+func (pg *PostgresqlClient) PostUpdate(ctx context.Context, post models.Post) (*models.Post, error) {
+	log := logger.
+		FromContext(ctx).
+		With().
+		Str("method", "postgresql.PostUpdate").
+		Logger()
+
+	p, err := pg.Post.UpdateOneID(*post.ID).
+		SetTitle(post.Title).
+		SetContent(post.Content).
+		Save(ctx)
+
+	if err != nil {
+		log.Err(err).
+			Msg("error while updating post")
+		return nil, err
+	}
+
+	return &models.Post{
+		ID:      &p.ID,
+		Title:   p.Title,
+		Content: p.Content,
+		UserID:  p.UserID,
+	}, err
+}
+
+// OTHER
 func (pg *PostgresqlClient) CreateDB(ctx context.Context, l *zerolog.Logger) error {
 	logger := l.With().
 		Str("method", "postgresql.CreateDB").

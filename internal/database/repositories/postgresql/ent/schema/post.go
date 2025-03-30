@@ -1,10 +1,10 @@
 package schema
 
 import (
-	"time"
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"time"
 )
 
 // Post holds the schema definition for the Post entity.
@@ -22,6 +22,9 @@ func (Post) Fields() []ent.Field {
 		field.Time("created_at").
 			Default(time.Now).
 			Immutable(),
+		field.Int("user_id").
+			Positive().
+			Immutable(),
 		field.Time("updated_at").
 			Default(time.Now).
 			UpdateDefault(time.Now),
@@ -31,9 +34,11 @@ func (Post) Fields() []ent.Field {
 // Edges of the Post.
 func (Post) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("user_id", User.Type).
+		edge.From("user", User.Type).
 			Ref("posts").
+			Field("user_id").
 			Unique().
+			Immutable().
 			Required(),
 	}
 }

@@ -32,19 +32,19 @@ const (
 // PostMutation represents an operation that mutates the Post nodes in the graph.
 type PostMutation struct {
 	config
-	op             Op
-	typ            string
-	id             *int
-	title          *string
-	content        *string
-	created_at     *time.Time
-	updated_at     *time.Time
-	clearedFields  map[string]struct{}
-	user_id        *int
-	cleareduser_id bool
-	done           bool
-	oldValue       func(context.Context) (*Post, error)
-	predicates     []predicate.Post
+	op            Op
+	typ           string
+	id            *int
+	title         *string
+	content       *string
+	created_at    *time.Time
+	updated_at    *time.Time
+	clearedFields map[string]struct{}
+	user          *int
+	cleareduser   bool
+	done          bool
+	oldValue      func(context.Context) (*Post, error)
+	predicates    []predicate.Post
 }
 
 var _ ent.Mutation = (*PostMutation)(nil)
@@ -253,6 +253,42 @@ func (m *PostMutation) ResetCreatedAt() {
 	m.created_at = nil
 }
 
+// SetUserID sets the "user_id" field.
+func (m *PostMutation) SetUserID(i int) {
+	m.user = &i
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *PostMutation) UserID() (r int, exists bool) {
+	v := m.user
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *PostMutation) ResetUserID() {
+	m.user = nil
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (m *PostMutation) SetUpdatedAt(t time.Time) {
 	m.updated_at = &t
@@ -289,43 +325,31 @@ func (m *PostMutation) ResetUpdatedAt() {
 	m.updated_at = nil
 }
 
-// SetUserIDID sets the "user_id" edge to the User entity by id.
-func (m *PostMutation) SetUserIDID(id int) {
-	m.user_id = &id
+// ClearUser clears the "user" edge to the User entity.
+func (m *PostMutation) ClearUser() {
+	m.cleareduser = true
+	m.clearedFields[post.FieldUserID] = struct{}{}
 }
 
-// ClearUserID clears the "user_id" edge to the User entity.
-func (m *PostMutation) ClearUserID() {
-	m.cleareduser_id = true
+// UserCleared reports if the "user" edge to the User entity was cleared.
+func (m *PostMutation) UserCleared() bool {
+	return m.cleareduser
 }
 
-// UserIDCleared reports if the "user_id" edge to the User entity was cleared.
-func (m *PostMutation) UserIDCleared() bool {
-	return m.cleareduser_id
-}
-
-// UserIDID returns the "user_id" edge ID in the mutation.
-func (m *PostMutation) UserIDID() (id int, exists bool) {
-	if m.user_id != nil {
-		return *m.user_id, true
-	}
-	return
-}
-
-// UserIDIDs returns the "user_id" edge IDs in the mutation.
+// UserIDs returns the "user" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// UserIDID instead. It exists only for internal usage by the builders.
-func (m *PostMutation) UserIDIDs() (ids []int) {
-	if id := m.user_id; id != nil {
+// UserID instead. It exists only for internal usage by the builders.
+func (m *PostMutation) UserIDs() (ids []int) {
+	if id := m.user; id != nil {
 		ids = append(ids, *id)
 	}
 	return
 }
 
-// ResetUserID resets all changes to the "user_id" edge.
-func (m *PostMutation) ResetUserID() {
-	m.user_id = nil
-	m.cleareduser_id = false
+// ResetUser resets all changes to the "user" edge.
+func (m *PostMutation) ResetUser() {
+	m.user = nil
+	m.cleareduser = false
 }
 
 // Where appends a list predicates to the PostMutation builder.
@@ -362,7 +386,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.title != nil {
 		fields = append(fields, post.FieldTitle)
 	}
@@ -371,6 +395,9 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
+	}
+	if m.user != nil {
+		fields = append(fields, post.FieldUserID)
 	}
 	if m.updated_at != nil {
 		fields = append(fields, post.FieldUpdatedAt)
@@ -389,6 +416,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case post.FieldCreatedAt:
 		return m.CreatedAt()
+	case post.FieldUserID:
+		return m.UserID()
 	case post.FieldUpdatedAt:
 		return m.UpdatedAt()
 	}
@@ -406,6 +435,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case post.FieldCreatedAt:
 		return m.OldCreatedAt(ctx)
+	case post.FieldUserID:
+		return m.OldUserID(ctx)
 	case post.FieldUpdatedAt:
 		return m.OldUpdatedAt(ctx)
 	}
@@ -438,6 +469,13 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCreatedAt(v)
 		return nil
+	case post.FieldUserID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
 	case post.FieldUpdatedAt:
 		v, ok := value.(time.Time)
 		if !ok {
@@ -452,13 +490,16 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *PostMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *PostMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	}
 	return nil, false
 }
 
@@ -503,6 +544,9 @@ func (m *PostMutation) ResetField(name string) error {
 	case post.FieldCreatedAt:
 		m.ResetCreatedAt()
 		return nil
+	case post.FieldUserID:
+		m.ResetUserID()
+		return nil
 	case post.FieldUpdatedAt:
 		m.ResetUpdatedAt()
 		return nil
@@ -513,8 +557,8 @@ func (m *PostMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PostMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.user_id != nil {
-		edges = append(edges, post.EdgeUserID)
+	if m.user != nil {
+		edges = append(edges, post.EdgeUser)
 	}
 	return edges
 }
@@ -523,8 +567,8 @@ func (m *PostMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *PostMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case post.EdgeUserID:
-		if id := m.user_id; id != nil {
+	case post.EdgeUser:
+		if id := m.user; id != nil {
 			return []ent.Value{*id}
 		}
 	}
@@ -546,8 +590,8 @@ func (m *PostMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PostMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.cleareduser_id {
-		edges = append(edges, post.EdgeUserID)
+	if m.cleareduser {
+		edges = append(edges, post.EdgeUser)
 	}
 	return edges
 }
@@ -556,8 +600,8 @@ func (m *PostMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *PostMutation) EdgeCleared(name string) bool {
 	switch name {
-	case post.EdgeUserID:
-		return m.cleareduser_id
+	case post.EdgeUser:
+		return m.cleareduser
 	}
 	return false
 }
@@ -566,8 +610,8 @@ func (m *PostMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *PostMutation) ClearEdge(name string) error {
 	switch name {
-	case post.EdgeUserID:
-		m.ClearUserID()
+	case post.EdgeUser:
+		m.ClearUser()
 		return nil
 	}
 	return fmt.Errorf("unknown Post unique edge %s", name)
@@ -577,8 +621,8 @@ func (m *PostMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PostMutation) ResetEdge(name string) error {
 	switch name {
-	case post.EdgeUserID:
-		m.ResetUserID()
+	case post.EdgeUser:
+		m.ResetUser()
 		return nil
 	}
 	return fmt.Errorf("unknown Post edge %s", name)

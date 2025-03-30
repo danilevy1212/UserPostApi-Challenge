@@ -6,6 +6,14 @@ meta {
 
 post {
   url: {{baseUrl}}/posts
-  body: none
+  body: json
   auth: none
+}
+
+body:json {
+  {
+    "title": "An essay",
+    "content": "Not much to say",
+    "user_id": 18
+  }
 }

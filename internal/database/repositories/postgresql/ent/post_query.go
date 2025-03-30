@@ -23,8 +23,7 @@ type PostQuery struct {
 	order      []post.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Post
-	withUserID *UserQuery
-	withFKs    bool
+	withUser   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -61,8 +60,8 @@ func (pq *PostQuery) Order(o ...post.OrderOption) *PostQuery {
 	return pq
 }
 
-// QueryUserID chains the current query on the "user_id" edge.
-func (pq *PostQuery) QueryUserID() *UserQuery {
+// QueryUser chains the current query on the "user" edge.
+func (pq *PostQuery) QueryUser() *UserQuery {
 	query := (&UserClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
@@ -75,7 +74,7 @@ func (pq *PostQuery) QueryUserID() *UserQuery {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(post.Table, post.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, post.UserIDTable, post.UserIDColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, post.UserTable, post.UserColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -275,21 +274,21 @@ func (pq *PostQuery) Clone() *PostQuery {
 		order:      append([]post.OrderOption{}, pq.order...),
 		inters:     append([]Interceptor{}, pq.inters...),
 		predicates: append([]predicate.Post{}, pq.predicates...),
-		withUserID: pq.withUserID.Clone(),
+		withUser:   pq.withUser.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
 }
 
-// WithUserID tells the query-builder to eager-load the nodes that are connected to
-// the "user_id" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *PostQuery) WithUserID(opts ...func(*UserQuery)) *PostQuery {
+// WithUser tells the query-builder to eager-load the nodes that are connected to
+// the "user" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *PostQuery) WithUser(opts ...func(*UserQuery)) *PostQuery {
 	query := (&UserClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withUserID = query
+	pq.withUser = query
 	return pq
 }
 
@@ -370,18 +369,11 @@ func (pq *PostQuery) prepareQuery(ctx context.Context) error {
 func (pq *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, error) {
 	var (
 		nodes       = []*Post{}
-		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
 		loadedTypes = [1]bool{
-			pq.withUserID != nil,
+			pq.withUser != nil,
 		}
 	)
-	if pq.withUserID != nil {
-		withFKs = true
-	}
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, post.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Post).scanValues(nil, columns)
 	}
@@ -400,23 +392,20 @@ func (pq *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pq.withUserID; query != nil {
-		if err := pq.loadUserID(ctx, query, nodes, nil,
-			func(n *Post, e *User) { n.Edges.UserID = e }); err != nil {
+	if query := pq.withUser; query != nil {
+		if err := pq.loadUser(ctx, query, nodes, nil,
+			func(n *Post, e *User) { n.Edges.User = e }); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
 }
 
-func (pq *PostQuery) loadUserID(ctx context.Context, query *UserQuery, nodes []*Post, init func(*Post), assign func(*Post, *User)) error {
+func (pq *PostQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*Post, init func(*Post), assign func(*Post, *User)) error {
 	ids := make([]int, 0, len(nodes))
 	nodeids := make(map[int][]*Post)
 	for i := range nodes {
-		if nodes[i].user_posts == nil {
-			continue
-		}
-		fk := *nodes[i].user_posts
+		fk := nodes[i].UserID
 		if _, ok := nodeids[fk]; !ok {
 			ids = append(ids, fk)
 		}
@@ -433,7 +422,7 @@ func (pq *PostQuery) loadUserID(ctx context.Context, query *UserQuery, nodes []*
 	for _, n := range neighbors {
 		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_posts" returned %v`, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -466,6 +455,9 @@ func (pq *PostQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != post.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
+		}
+		if pq.withUser != nil {
+			_spec.Node.AddColumnOnce(post.FieldUserID)
 		}
 	}
 	if ps := pq.predicates; len(ps) > 0 {

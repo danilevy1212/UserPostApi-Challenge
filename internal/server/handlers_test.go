@@ -46,6 +46,7 @@ func Test_Application_Health(t *testing.T) {
 	})
 }
 
+// USERS
 func Test_Application_UserCreate(t *testing.T) {
 	app.Router.POST("/users", app.UserCreate)
 
@@ -351,6 +352,59 @@ func Test_Application_UserUpdateByID(t *testing.T) {
 		w := httptest.NewRecorder()
 		app.Router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}
+
+// POSTS
+func Test_Application_PostCreate(t *testing.T) {
+	app.Router.POST("/posts", app.PostCreate)
+
+	tests := []struct {
+		Name        string
+		StatusCode  int
+		RequestBody string
+	}{
+		{
+			"should return 201 if post is created on DB",
+			201,
+			`{"title":"Post Title","content":"Post Content","user_id":1}`,
+		},
+		{
+			"should return 422 if post is malformed",
+			422,
+			`{}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			reader := strings.NewReader(tt.RequestBody)
+			req := addLoggerToContext(httptest.NewRequest(http.MethodPost, "/posts", reader))
+			w := httptest.NewRecorder()
+			app.Router.ServeHTTP(w, req)
+
+			assert.Equal(t, tt.StatusCode, w.Code)
+			snaps.MatchJSON(t, w.Body.String())
+		})
+	}
+
+	t.Run("should return 503 if unknown error occurs", func(t *testing.T) {
+		oldPostCreateFn := inmemory.InMemoryPostCreateFn
+		defer func() {
+			inmemory.InMemoryPostCreateFn = oldPostCreateFn
+		}()
+
+		inmemory.InMemoryPostCreateFn = func(ctx context.Context, p models.Post) (*models.Post, error) {
+			return nil, errors.New("something terrible happened")
+		}
+
+		reader := strings.NewReader(`{"title":"Post Title","content":"Post Content","user_id":1}`)
+		req := addLoggerToContext(httptest.NewRequest(http.MethodPost, "/posts", reader))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, 503, w.Code)
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
