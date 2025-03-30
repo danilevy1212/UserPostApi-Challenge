@@ -17,7 +17,7 @@ type DBRepository interface {
 
 	PostCreate(ctx context.Context, post models.Post) (*models.Post, error)
 	PostGetAll(ctx context.Context) ([]*models.Post, error)
-	// PostGetByID(ctx context.Context, id int) (*models.Post, error)
-	// PostDeleteByID(ctx context.Context, id int) error
-	// PostUpdate(ctx context.Context, user models.Post) (*models.Post, error)
+	PostGetByID(ctx context.Context, id int) (*models.Post, error)
+	PostDeleteByID(ctx context.Context, id int) error
+	PostUpdate(ctx context.Context, user models.Post) (*models.Post, error)
 }

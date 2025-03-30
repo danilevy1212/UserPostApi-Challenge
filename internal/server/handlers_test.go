@@ -455,3 +455,59 @@ func Test_Application_PostGetAll(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
+
+func Test_Application_PostGetByID(t *testing.T) {
+	app.Router.GET("/posts/:id", app.PostGetByID)
+
+	t.Run("should return 200 with post data", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 400 when id is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts/hahaha", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 404 when post is not found", func(t *testing.T) {
+		oldPostGetByIDFunc := inmemory.InMemoryPostGetByIDFn
+		defer func() {
+			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
+		}()
+		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+			return nil, &ent.NotFoundError{}
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldPostGetByIDFunc := inmemory.InMemoryPostGetByIDFn
+		defer func() {
+			inmemory.InMemoryPostGetByIDFn = oldPostGetByIDFunc
+		}()
+		inmemory.InMemoryPostGetByIDFn = func(ctx context.Context, id int) (*models.Post, error) {
+			return nil, errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodGet, "/posts/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}

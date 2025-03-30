@@ -382,3 +382,54 @@ func (a *Application) PostGetAll(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, result)
 }
+
+func (a *Application) PostGetByID(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "PostGetByID").
+		Logger()
+
+	idRaw := ctx.Param("id")
+	id, err := strconv.Atoi(idRaw)
+
+	if err != nil {
+		log.Info().
+			Str("id", idRaw).
+			Msg("invalid id")
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	dbPost, err := a.DB.PostGetByID(reqContext, id)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Info().
+				Int("id", id).
+				Msg("post not found")
+
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error querying database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	post := models.Post{
+		ID:      dbPost.ID,
+		Title:   dbPost.Title,
+		Content: dbPost.Content,
+		UserID:  dbPost.UserID,
+	}
+
+	ctx.JSON(http.StatusOK, post)
+}

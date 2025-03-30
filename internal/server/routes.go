@@ -20,4 +20,5 @@ func (a *Application) RegisterRoutes() {
 	postRoutes := r.Group("/posts")
 	postRoutes.POST("/", a.PostCreate)
 	postRoutes.GET("/", a.PostGetAll)
+	postRoutes.GET("/:id", a.PostGetByID)
 }
