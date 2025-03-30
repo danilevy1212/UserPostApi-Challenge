@@ -433,3 +433,47 @@ func (a *Application) PostGetByID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, post)
 }
+
+func (a *Application) PostDeleteByID(ctx *gin.Context) {
+	reqContext := ctx.Request.Context()
+	log := logger.FromContext(reqContext).
+		With().
+		Str("handler", "PostDeleteByID").
+		Logger()
+
+	idRaw := ctx.Param("id")
+	id, err := strconv.Atoi(idRaw)
+
+	if err != nil {
+		log.Info().
+			Str("id", idRaw).
+			Msg("invalid id")
+
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	err = a.DB.PostDeleteByID(reqContext, id)
+
+	if err != nil {
+		if ent.IsNotFound(err) {
+			log.Info().
+				Int("id", id).
+				Msg("post not found")
+
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "post not found"})
+			return
+		}
+
+		log.Error().
+			Err(err).
+			Msg("error deleting post in database")
+
+		ctx.JSON(http.StatusServiceUnavailable, gin.H{
+			"error": "service unavailable",
+		})
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+}

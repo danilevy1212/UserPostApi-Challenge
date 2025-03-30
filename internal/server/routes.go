@@ -21,4 +21,5 @@ func (a *Application) RegisterRoutes() {
 	postRoutes.POST("/", a.PostCreate)
 	postRoutes.GET("/", a.PostGetAll)
 	postRoutes.GET("/:id", a.PostGetByID)
+	postRoutes.DELETE("/:id", a.PostDeleteByID)
 }

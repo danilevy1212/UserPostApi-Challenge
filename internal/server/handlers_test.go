@@ -511,3 +511,59 @@ func Test_Application_PostGetByID(t *testing.T) {
 		snaps.MatchJSON(t, w.Body.String())
 	})
 }
+
+func Test_Application_PostDeleteByID(t *testing.T) {
+	app.Router.DELETE("/posts/:id", app.PostDeleteByID)
+
+	t.Run("should return 204 when post is deleted", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/posts/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNoContent, w.Code)
+		assert.Equal(t, w.Body.String(), "")
+	})
+
+	t.Run("should return 404 when post is not found", func(t *testing.T) {
+		oldPostDeleteByIDFunc := inmemory.InMemoryPostDeleteByIDFn
+		defer func() {
+			inmemory.InMemoryPostDeleteByIDFn = oldPostDeleteByIDFunc
+		}()
+		inmemory.InMemoryPostDeleteByIDFn = func(ctx context.Context, id int) error {
+			return &ent.NotFoundError{}
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/posts/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 400 when id is malformed", func(t *testing.T) {
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/posts/hahaha", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+
+	t.Run("should return 503 when unexpected error happens", func(t *testing.T) {
+		oldPostDeleteByIDFunc := inmemory.InMemoryPostDeleteByIDFn
+		defer func() {
+			inmemory.InMemoryPostDeleteByIDFn = oldPostDeleteByIDFunc
+		}()
+		inmemory.InMemoryPostDeleteByIDFn = func(ctx context.Context, id int) error {
+			return errors.New("You've met a terrible fate, haven't you?")
+		}
+
+		req := addLoggerToContext(httptest.NewRequest(http.MethodDelete, "/posts/1", nil))
+		w := httptest.NewRecorder()
+		app.Router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusServiceUnavailable, w.Code)
+		snaps.MatchJSON(t, w.Body.String())
+	})
+}

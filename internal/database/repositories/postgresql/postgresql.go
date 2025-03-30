@@ -272,7 +272,7 @@ func (pg *PostgresqlClient) PostDeleteByID(ctx context.Context, id int) error {
 	return err
 }
 
-func (pg *PostgresqlClient) PostUpdate(ctx context.Context, post models.Post) (*models.Post, error) {
+func (pg *PostgresqlClient) PostUpdate(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
 	log := logger.
 		FromContext(ctx).
 		With().

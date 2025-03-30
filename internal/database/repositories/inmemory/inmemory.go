@@ -64,7 +64,7 @@ type PostCreateFunc func(ctx context.Context, post models.Post) (*models.Post, e
 type PostGetAllFunc func(ctx context.Context) ([]*models.Post, error)
 type PostGetByIDFunc func(ctx context.Context, id int) (*models.Post, error)
 type PostDeleteByIDFunc func(ctx context.Context, id int) error
-type PostUpdateFunc func(ctx context.Context, post models.Post) (*models.Post, error)
+type PostUpdateFunc func(ctx context.Context, post models.PostUpdate) (*models.Post, error)
 
 var InMemoryPostCreateFn PostCreateFunc = func(ctx context.Context, post models.Post) (*models.Post, error) {
 	id := 1
@@ -116,7 +116,7 @@ var InMemoryPostDeleteByIDFn PostDeleteByIDFunc = func(ctx context.Context, id i
 	return nil
 }
 
-var InMemoryPostUpdateFn PostUpdateFunc = func(ctx context.Context, post models.Post) (*models.Post, error) {
+var InMemoryPostUpdateFn PostUpdateFunc = func(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
 	return &models.Post{
 		ID:      post.ID,
 		Title:   "coolio",
@@ -172,6 +172,6 @@ func (im *InMemoryDB) PostDeleteByID(ctx context.Context, id int) error {
 	return InMemoryPostDeleteByIDFn(ctx, id)
 }
 
-func (im *InMemoryDB) PostUpdate(ctx context.Context, post models.Post) (*models.Post, error) {
+func (im *InMemoryDB) PostUpdate(ctx context.Context, post models.PostUpdate) (*models.Post, error) {
 	return InMemoryPostUpdateFn(ctx, post)
 }
