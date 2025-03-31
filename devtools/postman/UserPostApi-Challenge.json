@@ -193,30 +193,6 @@
       "name": "Users",
       "item": [
         {
-          "name": "All Users",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "{{baseUrl}}/users",
-              "protocol": "",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "users"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
           "name": "Create User",
           "event": [],
           "request": {
@@ -246,6 +222,30 @@
                   "language": "json"
                 }
               }
+            }
+          }
+        },
+        {
+          "name": "All Users",
+          "event": [],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "protocol": "",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [],
+              "variable": []
             }
           }
         },
