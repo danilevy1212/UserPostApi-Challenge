@@ -35,3 +35,6 @@ result-*
 
 # k8s
 k8s-secret.yaml
+
+# outputs
+bin/
