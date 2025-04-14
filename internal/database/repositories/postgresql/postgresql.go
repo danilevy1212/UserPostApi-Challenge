@@ -63,8 +63,13 @@ func (pg *PostgresqlClient) UserCreate(ctx context.Context, user models.User) (*
 		Save(ctx)
 
 	if err != nil {
-		log.Err(err).
-			Msg("error while creating user")
+		if !ent.IsConstraintError(err) {
+			log.Error().
+				AnErr("error", err).
+				Msg("error while creating user")
+		}
+
+		return nil, err
 	}
 
 	log.Info().
